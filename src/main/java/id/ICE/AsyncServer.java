@@ -20,6 +20,14 @@ public class AsyncServer implements Runnable, AutoCloseable {
     private AsynchronousChannelGroup group;
     private AsynchronousServerSocketChannel channel;
 
+    /**
+     * @param handler Process the incoming request and returns response:
+     * - if response is null the connection is closed
+     * - otherwise we will be waiting for next requests
+     * When response payload is non null we send it back to the client.
+     * @param port
+     * @param threads
+     */
     public AsyncServer(Function<Request, Response> handler, int port, int threads) {
         this.handler = handler;
         this.port = port;
