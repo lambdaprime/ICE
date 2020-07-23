@@ -20,14 +20,6 @@ public class AsyncServer implements Runnable, AutoCloseable {
     private AsynchronousChannelGroup group;
     private AsynchronousServerSocketChannel channel;
 
-    /**
-     * @param handler Process the incoming request and returns response:
-     * - if response is null the connection is closed
-     * - otherwise we will be waiting for next requests
-     * When response payload is non null we send it back to the client.
-     * @param port
-     * @param threads
-     */
     public AsyncServer(Function<Request, Response> handler, int port, int threads) {
         this.handler = handler;
         this.port = port;
@@ -59,6 +51,10 @@ public class AsyncServer implements Runnable, AutoCloseable {
     private class RequestHandler implements CompletionHandler<Integer, AsynchronousSocketChannel> {
         ByteBuffer buf = ByteBuffer.wrap(new byte[256]);
 
+        /**
+         * Called once read operation succeeds with some data read
+         * or when read is failed. 
+         */
         @Override
         public void completed(Integer result, AsynchronousSocketChannel channel) {
             var res = handler.apply(new Request(new String(buf.array(), 0, buf.position())));
@@ -83,6 +79,7 @@ public class AsyncServer implements Runnable, AutoCloseable {
         }
 
         public void process(AsynchronousSocketChannel ch) {
+            // let Java do async read of data and call us back once done
             ch.read(buf, ch, this);
         }
     }
@@ -115,16 +112,16 @@ public class AsyncServer implements Runnable, AutoCloseable {
         channel = AsynchronousServerSocketChannel.open(group)
             .bind(new InetSocketAddress(port));
         channel.accept(null, new CompletionHandler<AsynchronousSocketChannel, Void>() {
-                public void completed(AsynchronousSocketChannel ch, Void att) {
-                    var handler = new RequestHandler();
-                    handler.process(ch);
-                    if (!group.isShutdown())
-                        channel.accept(null, this);
-                }
-                public void failed(Throwable exc, Void att) {
-                    handleException(exc);
-                }
-            });
+            public void completed(AsynchronousSocketChannel ch, Void att) {
+                var handler = new RequestHandler();
+                handler.process(ch);
+                if (!group.isShutdown())
+                    channel.accept(null, this);
+            }
+            public void failed(Throwable exc, Void att) {
+                handleException(exc);
+            }
+        });
     }
 
     @Override
