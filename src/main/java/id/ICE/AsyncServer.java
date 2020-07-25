@@ -35,7 +35,8 @@ public class AsyncServer implements Runnable, AutoCloseable {
 
         @Override
         public void completed(Integer result, AsynchronousSocketChannel channel) {
-            
+            if (response.hasRemaining() && channel.isOpen()) 
+                process(channel);
         }
 
         @Override
@@ -95,6 +96,7 @@ public class AsyncServer implements Runnable, AutoCloseable {
 
     private void handleException(Throwable exc) {
         System.out.println("got exception");
+        // main thread forcefully closed all channels
         if (exc instanceof AsynchronousCloseException)
             return;
         System.err.println(exc);
