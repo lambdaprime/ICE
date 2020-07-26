@@ -1,3 +1,5 @@
 /bin/
-/.gradle/
 /build/
+/.gradle/
+/.settings/
+/src/gen/

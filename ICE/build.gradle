@@ -1,0 +1,55 @@
+// gradle clean build publishToMavenLocal
+
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+ 
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+}
+
+compileJava {
+    doFirst {
+        options.compilerArgs = [
+            '--module-path', classpath.asPath,
+        ]
+        classpath = files()  
+    }
+}
+
+def releaseFileName = "${rootProject.name}-${version}.zip"
+def releaseDir = "$projectDir/release"
+def releaseOutDir = "${buildDir}/release/${rootProject.name}"
+
+task copyLibs(type: Copy) {
+    from "$projectDir/libs"
+    from jar.archiveFile
+    into "${releaseOutDir}/libs"
+}
+
+task createRelease(type: Copy, dependsOn: copyLibs) {
+    from "${project.rootDir}/README.md"
+    into "${releaseOutDir}"
+}
+
+task packageDistribution(type: Zip) {
+    archiveFileName = releaseFileName
+    destinationDirectory = file("$projectDir/release")
+    from file("$releaseOutDir")
+}
+
+task cleanRelease(type: Delete) {
+    delete "$releaseDir"
+    delete "$releaseOutDir"
+}
+
+packageDistribution.dependsOn createRelease
+build.dependsOn packageDistribution
+clean.dependsOn cleanRelease
