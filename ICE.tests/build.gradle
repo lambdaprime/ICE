@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     testImplementation('org.junit.jupiter:junit-jupiter-api:5.4.2')
-    testImplementation('id:ICE:1.0')
+    testImplementation project(':ICE')
     testRuntime('org.junit.jupiter:junit-jupiter-engine:5.4.2')
 }
 
@@ -33,7 +33,4 @@ compileTestJava {
 
 test {
     useJUnitPlatform()
-    filter {
-        exclude '**/module-info.class'
-    }
 }

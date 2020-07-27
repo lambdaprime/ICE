@@ -1,10 +1,12 @@
 package id.ICE.tests;
 
-import java.io.IOException;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -13,39 +15,45 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import id.ICE.AsyncServer;
-import id.ICE.Request;
-import id.ICE.Response;
 
 public class AsyncServerTests {
 
     private static final int PORT = 1234;
 
-    @Test
-    public void testSingleThread() {
-        test(1);
-    }
-
-    @Test
-    public void testMultiThread() {
-        test(10);
-    }
-
     /**
      * Test that server sends all data back correctly
      */
     @Test
-    public void tesServerSend() {
-        int length = 1_000_000;
-        String data = "g".repeat(length);
-        Function<Request, Response> handler = req -> {
-            return new Response(data);
+    public void test_server_send() {
+        String data = "g".repeat(1_000);
+        Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler = req -> {
+            return completedFuture(ByteBuffer.wrap(data.getBytes()));
         };
-        try (var server = new AsyncServer(handler , PORT, 1)) {
+        try (var server = new AsyncServer(handler, buf -> buf.position(), PORT, 1)) {
             server.run();
             var ch = SocketChannel.open();
             ch.connect(new InetSocketAddress(PORT));
-            ch.write(ByteBuffer.wrap("f".getBytes()));
-            ByteBuffer buf = ByteBuffer.wrap(new byte[length]);
+            ch.write(ByteBuffer.wrap(data.getBytes()));
+            ByteBuffer buf = ByteBuffer.wrap(new byte[data.length()]);
+            while (ch.read(buf) > 0);
+            Assertions.assertArrayEquals(data.getBytes(), buf.array());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void test_handler_delayed_completion() {
+        String data = "g".repeat(1_000);
+        Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler = req -> {
+            return new DelayedCompletableFuture<>(ByteBuffer.wrap(data.getBytes()), 3000);
+        };
+        try (var server = new AsyncServer(handler, buf -> buf.position(), PORT, 1)) {
+            server.run();
+            var ch = SocketChannel.open();
+            ch.connect(new InetSocketAddress(PORT));
+            ch.write(ByteBuffer.wrap(data.getBytes()));
+            ByteBuffer buf = ByteBuffer.wrap(new byte[data.length()]);
             while (ch.read(buf) > 0);
             Assertions.assertArrayEquals(data.getBytes(), buf.array());
         } catch (Exception e) {
@@ -53,10 +61,20 @@ public class AsyncServerTests {
         }
     }
     
+    @Test
+    public void testSingleThread() {
+        test(1);
+    }
+
+    @Test
+    public void testMultiThread() {
+        test(100);
+    }
+
     private void test(int serverThreadPoolSize) {
         var sender = new Sender();
         var receiver = new Receiver();
-        try (var server = new AsyncServer(receiver::receive, PORT, serverThreadPoolSize)) {
+        try (var server = new AsyncServer(receiver::receive, buf -> buf.position(), PORT, serverThreadPoolSize)) {
             server.run();
             Stream.generate(System::currentTimeMillis).limit(1000)
                 .map(l -> l.toString())
@@ -79,10 +97,11 @@ public class AsyncServerTests {
     static class Receiver {
         Collection<String> received = new ConcurrentLinkedQueue<>();
 
-        Response receive(Request req) {
-            received.add(req.data);
-            //System.out.println(received.size());
-            return null;
+        CompletableFuture<ByteBuffer> receive(ByteBuffer req) {
+            var message = new String(req.array());
+            received.add(message);
+            System.out.format("%d => %s\n", received.size(), message);
+            return new DelayedCompletableFuture<>(null, 10, 1000);
         }
     }
 
@@ -90,18 +109,16 @@ public class AsyncServerTests {
         Collection<String> sent = new ConcurrentLinkedQueue<>();
 
         void send(String msg) {
-    //        System.out.println("start sending");
+            System.out.println("start sending");
             try {
                 var ch = SocketChannel.open();
                 ch.connect(new InetSocketAddress(PORT));
                 if (ch.write(ByteBuffer.wrap(msg.getBytes())) == msg.length())
                     sent.add(msg);
-                
-                
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-    //        System.out.println("sent");
+            System.out.println("sent");
         }
     }
 }
