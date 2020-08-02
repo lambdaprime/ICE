@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import id.ICE.AsyncServer;
+import id.ICE.DelayedCompletableFuture;
 
 public class AsyncServerTests {
 
@@ -29,7 +30,7 @@ public class AsyncServerTests {
         Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler = req -> {
             return completedFuture(ByteBuffer.wrap(data.getBytes()));
         };
-        try (var server = new AsyncServer(handler, buf -> buf.position(), PORT, 1)) {
+        try (var server = new AsyncServer(handler, buf -> buf.limit(), PORT, 1)) {
             server.run();
             var ch = SocketChannel.open();
             ch.connect(new InetSocketAddress(PORT));
@@ -48,7 +49,7 @@ public class AsyncServerTests {
         Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler = req -> {
             return new DelayedCompletableFuture<>(ByteBuffer.wrap(data.getBytes()), 3000);
         };
-        try (var server = new AsyncServer(handler, buf -> buf.position(), PORT, 1)) {
+        try (var server = new AsyncServer(handler, buf -> buf.limit(), PORT, 1)) {
             server.run();
             var ch = SocketChannel.open();
             ch.connect(new InetSocketAddress(PORT));
@@ -74,7 +75,7 @@ public class AsyncServerTests {
     private void test(int serverThreadPoolSize) {
         var sender = new Sender();
         var receiver = new Receiver();
-        try (var server = new AsyncServer(receiver::receive, buf -> buf.position(), PORT, serverThreadPoolSize)) {
+        try (var server = new AsyncServer(receiver::receive, buf -> buf.limit(), PORT, serverThreadPoolSize)) {
             server.run();
             Stream.generate(System::currentTimeMillis).limit(1000)
                 .map(l -> l.toString())
@@ -94,7 +95,10 @@ public class AsyncServerTests {
         Assertions.assertArrayEquals(sent, received);
     }
 
-    static class Receiver {
+    /**
+     * Receiver which accumulates all received data in internal collection
+     */
+    private static class Receiver {
         Collection<String> received = new ConcurrentLinkedQueue<>();
 
         CompletableFuture<ByteBuffer> receive(ByteBuffer req) {
@@ -105,13 +109,15 @@ public class AsyncServerTests {
         }
     }
 
-    static class Sender {
+    /**
+     * Sender which accumulates all sent data in internal collection
+     */
+    private static class Sender {
         Collection<String> sent = new ConcurrentLinkedQueue<>();
 
         void send(String msg) {
             System.out.println("start sending");
-            try {
-                var ch = SocketChannel.open();
+            try (var ch = SocketChannel.open()) {
                 ch.connect(new InetSocketAddress(PORT));
                 if (ch.write(ByteBuffer.wrap(msg.getBytes())) == msg.length())
                     sent.add(msg);

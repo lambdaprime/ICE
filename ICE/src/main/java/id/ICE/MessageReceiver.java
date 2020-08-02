@@ -6,11 +6,14 @@ import java.nio.channels.CompletionHandler;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
-public class MessageReceiver extends CompletableFuture<ByteBuffer> implements CompletionHandler<Integer, AsynchronousSocketChannel> {
+import id.ICE.scanners.MessageScanner;
+
+public class MessageReceiver implements CompletionHandler<Integer, AsynchronousSocketChannel> {
     private Utils utils = new Utils();
     private ByteBuffer buf;
     private AsynchronousSocketChannel channel;
     private MessageScanner scanner;
+    private CompletableFuture<ByteBuffer> future;
 
     public MessageReceiver(AsynchronousSocketChannel channel, MessageScanner scanner) {
         this(channel, scanner, 256);
@@ -28,7 +31,7 @@ public class MessageReceiver extends CompletableFuture<ByteBuffer> implements Co
      */
     @Override
     public void completed(Integer result, AsynchronousSocketChannel channel) {
-        var pos = scanner.scan(buf);
+        var pos = scanner.scan(buf.duplicate().rewind().limit(buf.position()));
         if (pos == -1) {
             if (!buf.hasRemaining()) {
                 ByteBuffer newBuf = ByteBuffer.wrap(new byte[(int) Math.pow(buf.capacity(), 2)]);
@@ -40,12 +43,11 @@ public class MessageReceiver extends CompletableFuture<ByteBuffer> implements Co
                 channel.read(buf, channel, this);
             return;
         }
-        buf.rewind();
         ByteBuffer message = ByteBuffer.wrap(Arrays.copyOf(buf.array(), pos));
-        //message = message.asReadOnlyBuffer();
-        complete(message);
-        buf.compact();
-        //buf.get(buf.array(), pos + 1, remaining);
+        if (pos < buf.position())
+            pos++;
+        buf = utils.shiftToHead(buf, pos, buf.position());
+        future.complete(message);
     }
 
     @Override
@@ -55,7 +57,8 @@ public class MessageReceiver extends CompletableFuture<ByteBuffer> implements Co
 
     public CompletableFuture<ByteBuffer> receive() {
         // let Java do async read of data and call us back once done
+        future = new CompletableFuture<>();
         channel.read(buf, channel, this);
-        return this;
+        return future;
     }
 }

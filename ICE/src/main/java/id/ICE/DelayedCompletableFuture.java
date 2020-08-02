@@ -1,4 +1,4 @@
-package id.ICE.tests;
+package id.ICE;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;

@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import id.ICE.scanners.MessageScanner;
+
 public class AsyncServer implements Runnable, AutoCloseable {
 
     private Utils utils = new Utils();
@@ -70,5 +72,6 @@ public class AsyncServer implements Runnable, AutoCloseable {
         group.awaitTermination(1000, TimeUnit.MILLISECONDS);
         System.out.println("awaken");
         group.shutdownNow();
+        channel.close();
     }
 }

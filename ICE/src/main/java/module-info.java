@@ -16,4 +16,5 @@
  */
 module id.ICE {
     exports id.ICE;
+    exports id.ICE.scanners;
 }

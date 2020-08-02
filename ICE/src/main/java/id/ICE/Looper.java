@@ -7,6 +7,8 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
+import id.ICE.scanners.MessageScanner;
+
 public class Looper {
 
     private AsynchronousChannelGroup group;

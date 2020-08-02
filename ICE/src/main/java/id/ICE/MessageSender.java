@@ -5,10 +5,14 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.CompletableFuture;
 
-public class MessageSender extends CompletableFuture<Void> implements CompletionHandler<Integer, AsynchronousSocketChannel> {
+/**
+ * Async sends the message and notifies the caller thru the CompletableFuture
+ */
+public class MessageSender implements CompletionHandler<Integer, AsynchronousSocketChannel> {
     private Utils utils = new Utils();
     private ByteBuffer message;
     private AsynchronousSocketChannel channel;
+    private CompletableFuture<Void> future;
     
     public MessageSender(AsynchronousSocketChannel channel) {
         this.channel = channel;
@@ -18,7 +22,7 @@ public class MessageSender extends CompletableFuture<Void> implements Completion
     public void completed(Integer result, AsynchronousSocketChannel channel) {
         if (message.hasRemaining() && channel.isOpen()) 
             channel.write(message, null, this);
-        complete(null);
+        future.complete(null);
     }
 
     @Override
@@ -26,9 +30,13 @@ public class MessageSender extends CompletableFuture<Void> implements Completion
         utils.handleException(exc);
     }
 
+    /**
+     * Send data
+     */
     public CompletableFuture<Void> send(ByteBuffer message) {
         this.message = message;
+        future = new CompletableFuture<>();
         channel.write(message, null, this);
-        return this;
+        return future;
     }
 }
