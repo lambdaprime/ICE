@@ -2,15 +2,13 @@ package id.ICE;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 import id.ICE.impl.Looper;
@@ -22,21 +20,30 @@ public class MessageServer implements Runnable, AutoCloseable {
 
     private static final Logger LOGGER = XLogger.getLogger(MessageServer.class);
     private Utils utils = new Utils();
-    private Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler;
+    private MessageService handler;
     private MessageScanner scanner;
     private int port;
     private int threads;
     private AsynchronousChannelGroup group;
     private AsynchronousServerSocketChannel channel;
 
-    public MessageServer(Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler,
-            MessageScanner scanner, int port, int threads) {
+    public MessageServer(MessageService handler, MessageScanner scanner) {
         this.handler = handler;
         this.scanner = scanner;
-        this.port = port;
-        this.threads = threads;
+        this.port = 12345;
+        this.threads = ForkJoinPool.getCommonPoolParallelism();
     }
 
+    public MessageServer withPort(int port) {
+        this.port = port;
+        return this;
+    }
+
+    public MessageServer withNumberOfThreads(int threads) {
+        this.threads = threads;
+        return this;
+    }
+    
     @Override
     public void run() {
         try {

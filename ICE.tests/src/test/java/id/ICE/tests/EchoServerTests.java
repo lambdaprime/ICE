@@ -22,7 +22,10 @@ public class EchoServerTests {
 
     @Test
     public void test_one_client() throws Exception {
-        try (var server = new MessageServer(this::handle, new DelimiterMessageScanner((byte)'\n'), PORT, 1)) {
+        try (var server = new MessageServer(this::handle, new DelimiterMessageScanner((byte)'\n'))) {
+            server
+                .withNumberOfThreads(1)
+                .withPort(PORT);
             server.run();
 
             var ch1 = SocketChannel.open();
@@ -44,25 +47,29 @@ public class EchoServerTests {
 
     @Test
     public void test_concurrency() throws Exception {
-        try (var server = new MessageServer(this::handle, new DelimiterMessageScanner((byte)'\n'), PORT, 7)) {
+        try (var server = new MessageServer(this::handle, new DelimiterMessageScanner((byte)'\n'))) {
+            server
+                .withNumberOfThreads(7)
+                .withPort(PORT);
             server.run();
+            var c = new AtomicInteger();
             range(0, 100).forEach(i -> {
-                ForkJoinPool.commonPool().submit(this::testInteraction);
+                ForkJoinPool.commonPool().submit(() -> testInteraction(c, 100));
             });
+            while (c.get() < 10000);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     /**
-     * Sends 100 different messages in one connection and checks
+     * Sends n different messages in one connection and checks
      * the responses to each of them
      */
-    private void testInteraction() {
-        var c = new AtomicInteger();
+    private void testInteraction(AtomicInteger c, int n) {
         try (var channel = SocketChannel.open()) {
             channel.connect(new InetSocketAddress(PORT));
-            range(0, 100).forEach((i) -> {
+            range(0, n).forEach((i) -> {
                 String data = "a".repeat((int) (Math.random() * 1000));
                 send(channel, data);
                 Assertions.assertEquals(data, receive(data.length(), channel));

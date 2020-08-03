@@ -8,13 +8,13 @@ import java.nio.channels.SocketChannel;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import id.ICE.MessageServer;
+import id.ICE.MessageService;
 import id.ICE.impl.DelayedCompletableFuture;
 
 public class MessageServerTests {
@@ -27,10 +27,13 @@ public class MessageServerTests {
     @Test
     public void test_server_send() {
         String data = "g".repeat(1_000);
-        Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler = req -> {
+        MessageService handler = req -> {
             return completedFuture(ByteBuffer.wrap(data.getBytes()));
         };
-        try (var server = new MessageServer(handler, buf -> buf.limit(), PORT, 1)) {
+        try (var server = new MessageServer(handler, buf -> buf.limit())) {
+            server
+                .withNumberOfThreads(1)
+                .withPort(PORT);
             server.run();
             var ch = SocketChannel.open();
             ch.connect(new InetSocketAddress(PORT));
@@ -46,10 +49,13 @@ public class MessageServerTests {
     @Test
     public void test_handler_delayed_completion() {
         String data = "g".repeat(1_000);
-        Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler = req -> {
+        MessageService handler = req -> {
             return new DelayedCompletableFuture<>(ByteBuffer.wrap(data.getBytes()), 3000);
         };
-        try (var server = new MessageServer(handler, buf -> buf.limit(), PORT, 1)) {
+        try (var server = new MessageServer(handler, buf -> buf.limit())) {
+            server
+                .withNumberOfThreads(1)
+                .withPort(PORT);
             server.run();
             var ch = SocketChannel.open();
             ch.connect(new InetSocketAddress(PORT));
@@ -75,7 +81,10 @@ public class MessageServerTests {
     private void test(int serverThreadPoolSize) {
         var sender = new Sender();
         var receiver = new Receiver();
-        try (var server = new MessageServer(receiver::receive, buf -> buf.limit(), PORT, serverThreadPoolSize)) {
+        try (var server = new MessageServer(receiver::receive, buf -> buf.limit())) {
+            server
+                .withNumberOfThreads(serverThreadPoolSize)
+                .withPort(PORT);
             server.run();
             Stream.generate(System::currentTimeMillis).limit(300)
                 .map(l -> l.toString())

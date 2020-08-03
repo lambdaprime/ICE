@@ -5,8 +5,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
+import id.ICE.MessageService;
 import id.ICE.handlers.MessageReceiver;
 import id.ICE.handlers.MessageSender;
 import id.ICE.scanners.MessageScanner;
@@ -17,12 +17,12 @@ public class Looper {
     private MessageReceiver receiver;
     private MessageSender sender;
     private AsynchronousSocketChannel channel;
-    private Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler;
+    private MessageService service;
     
     public Looper(AsynchronousChannelGroup group, AsynchronousSocketChannel channel,
-            Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler, MessageScanner scanner) {
+            MessageService service, MessageScanner scanner) {
         this.group = group;
-        this.handler = handler;
+        this.service = service;
         this.channel = channel;
         sender = new MessageSender(channel);
         receiver = new MessageReceiver(channel, scanner);
@@ -34,7 +34,7 @@ public class Looper {
         if (group.isShutdown())
             return;
         receiver.receive()
-            .thenCompose(handler)
+            .thenCompose(service::process)
             .thenCompose(this::send)
             .thenRun(() -> loop());
     }
