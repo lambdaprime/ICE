@@ -16,7 +16,7 @@ public class FixedLengthMessageScanner implements MessageScanner {
 
     @Override
     public int scan(ByteBuffer buf) {
-        return buf.position() < messageLength? -1: messageLength;
+        return buf.position() < messageLength? -1: messageLength + 1;
     }
 
 }

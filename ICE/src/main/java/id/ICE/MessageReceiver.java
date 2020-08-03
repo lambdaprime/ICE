@@ -31,23 +31,15 @@ public class MessageReceiver implements CompletionHandler<Integer, AsynchronousS
      */
     @Override
     public void completed(Integer result, AsynchronousSocketChannel channel) {
-        var pos = scanner.scan(buf.duplicate().rewind().limit(buf.position()));
-        if (pos == -1) {
-            if (!buf.hasRemaining()) {
-                ByteBuffer newBuf = ByteBuffer.wrap(new byte[(int) Math.pow(buf.capacity(), 2)]);
-                buf.rewind();
-                newBuf.put(buf);
-                buf = newBuf;
-            }
-            if (channel.isOpen())
-                channel.read(buf, channel, this);
-            return;
+        if (processMessage()) return;
+        if (!buf.hasRemaining()) {
+            ByteBuffer newBuf = ByteBuffer.wrap(new byte[(int) Math.pow(buf.capacity(), 2)]);
+            buf.rewind();
+            newBuf.put(buf);
+            buf = newBuf;
         }
-        ByteBuffer message = ByteBuffer.wrap(Arrays.copyOf(buf.array(), pos));
-        if (pos < buf.position())
-            pos++;
-        buf = utils.shiftToHead(buf, pos, buf.position());
-        future.complete(message);
+        if (channel.isOpen())
+            channel.read(buf, channel, this);
     }
 
     @Override
@@ -58,7 +50,20 @@ public class MessageReceiver implements CompletionHandler<Integer, AsynchronousS
     public CompletableFuture<ByteBuffer> receive() {
         // let Java do async read of data and call us back once done
         future = new CompletableFuture<>();
-        channel.read(buf, channel, this);
+        if (buf.position() == 0 || !processMessage())
+            channel.read(buf, channel, this);
         return future;
     }
+
+    private boolean processMessage() {
+        var pos = scanner.scan(buf.duplicate().rewind().limit(buf.position()));
+        if (pos == -1) {
+            return false;
+        }
+        ByteBuffer message = ByteBuffer.wrap(Arrays.copyOf(buf.array(), pos));
+        buf = utils.shiftToHead(buf, pos, buf.position());
+        future.complete(message);
+        return true;
+    }
+
 }

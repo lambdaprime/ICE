@@ -25,8 +25,8 @@ public class DelayedCompletableFuture<T> extends CompletableFuture<T> {
     public DelayedCompletableFuture(T value, long startMillis, long endMillis) {
         ForkJoinPool.commonPool().submit(() -> {
             try {
-                
-                Thread.sleep((long)(startMillis + (endMillis - startMillis) * Math.random()));
+                long msec = (long)(startMillis + (endMillis - startMillis) * Math.random());
+                Thread.sleep(msec);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

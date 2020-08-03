@@ -77,7 +77,7 @@ public class AsyncServerTests {
         var receiver = new Receiver();
         try (var server = new AsyncServer(receiver::receive, buf -> buf.limit(), PORT, serverThreadPoolSize)) {
             server.run();
-            Stream.generate(System::currentTimeMillis).limit(1000)
+            Stream.generate(System::currentTimeMillis).limit(300)
                 .map(l -> l.toString())
                 .parallel()
                 .forEach(sender::send);
@@ -105,7 +105,7 @@ public class AsyncServerTests {
             var message = new String(req.array());
             received.add(message);
             System.out.format("%d => %s\n", received.size(), message);
-            return new DelayedCompletableFuture<>(null, 10, 1000);
+            return new DelayedCompletableFuture<>(null, 10, 50);
         }
     }
 

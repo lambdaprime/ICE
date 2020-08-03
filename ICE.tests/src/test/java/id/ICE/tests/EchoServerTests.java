@@ -21,7 +21,7 @@ public class EchoServerTests {
     private static final int PORT = 1234;
 
     @Test
-    public void test_one_read_many_messages() throws Exception {
+    public void test_one_client() throws Exception {
         try (var server = new AsyncServer(this::handle, new DelimiterMessageScanner((byte)'\n'), PORT, 1)) {
             server.run();
 
@@ -75,9 +75,8 @@ public class EchoServerTests {
     }
     
     private CompletableFuture<ByteBuffer> handle(ByteBuffer message) {
-        byte[] b = new byte[message.capacity() + 1];
+        byte[] b = new byte[message.capacity()];
         message.get(b, 0, message.capacity());
-        b[b.length - 1] = '\n';
         System.out.println(new String(message.array()));
         return CompletableFuture.completedFuture(ByteBuffer.wrap(b));
     }

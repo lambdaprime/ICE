@@ -33,4 +33,7 @@ compileTestJava {
 
 test {
     useJUnitPlatform()
+    filter {
+        exclude '**/module-info.class'
+    }
 }

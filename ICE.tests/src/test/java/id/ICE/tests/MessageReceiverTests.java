@@ -27,7 +27,7 @@ public class MessageReceiverTests {
         var expectedMessage = "a".repeat(100).getBytes();
         ByteBuffer buf = ByteBuffer.wrap(expectedMessage);
         var channel = new AsynchronousSocketChannelMock(buf, List.of(20, 20, 20, 20, 20));
-        var receiver = new MessageReceiver(channel, b -> b.position() < 100? -1: 100, 10);
+        var receiver = new MessageReceiver(channel, b -> b.limit() < 100? -1: 100, 10);
         Assertions.assertArrayEquals(expectedMessage, receiver.receive().get().array());
     }
 }

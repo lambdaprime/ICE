@@ -19,7 +19,7 @@ public class DelimiterMessageScanner implements MessageScanner {
     @Override
     public int scan(ByteBuffer buf) {
         while (buf.hasRemaining()) {
-            if (buf.get() == delim) return buf.position() - 1;
+            if (buf.get() == delim) return buf.position();
         }
         return -1;
     }
