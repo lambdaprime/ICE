@@ -1,4 +1,4 @@
-package id.ICE;
+package id.ICE.handlers;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -6,6 +6,7 @@ import java.nio.channels.CompletionHandler;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
+import id.ICE.impl.Utils;
 import id.ICE.scanners.MessageScanner;
 
 public class MessageReceiver implements CompletionHandler<Integer, AsynchronousSocketChannel> {

@@ -13,12 +13,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
+import id.ICE.impl.Looper;
+import id.ICE.impl.Utils;
 import id.ICE.scanners.MessageScanner;
 import id.xfunction.logging.XLogger;
 
-public class AsyncServer implements Runnable, AutoCloseable {
+public class MessageServer implements Runnable, AutoCloseable {
 
-    private static final Logger LOGGER = XLogger.getLogger(AsyncServer.class);
+    private static final Logger LOGGER = XLogger.getLogger(MessageServer.class);
     private Utils utils = new Utils();
     private Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler;
     private MessageScanner scanner;
@@ -27,7 +29,7 @@ public class AsyncServer implements Runnable, AutoCloseable {
     private AsynchronousChannelGroup group;
     private AsynchronousServerSocketChannel channel;
 
-    public AsyncServer(Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler,
+    public MessageServer(Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler,
             MessageScanner scanner, int port, int threads) {
         this.handler = handler;
         this.scanner = scanner;

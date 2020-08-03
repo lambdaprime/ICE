@@ -1,4 +1,4 @@
-package id.ICE.tests;
+package id.ICE.tests.handlers;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import id.ICE.MessageReceiver;
+import id.ICE.handlers.MessageReceiver;
 
 public class MessageReceiverTests {
 

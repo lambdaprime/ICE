@@ -14,10 +14,10 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import id.ICE.AsyncServer;
-import id.ICE.DelayedCompletableFuture;
+import id.ICE.MessageServer;
+import id.ICE.impl.DelayedCompletableFuture;
 
-public class AsyncServerTests {
+public class MessageServerTests {
 
     private static final int PORT = 1234;
 
@@ -30,7 +30,7 @@ public class AsyncServerTests {
         Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler = req -> {
             return completedFuture(ByteBuffer.wrap(data.getBytes()));
         };
-        try (var server = new AsyncServer(handler, buf -> buf.limit(), PORT, 1)) {
+        try (var server = new MessageServer(handler, buf -> buf.limit(), PORT, 1)) {
             server.run();
             var ch = SocketChannel.open();
             ch.connect(new InetSocketAddress(PORT));
@@ -49,7 +49,7 @@ public class AsyncServerTests {
         Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler = req -> {
             return new DelayedCompletableFuture<>(ByteBuffer.wrap(data.getBytes()), 3000);
         };
-        try (var server = new AsyncServer(handler, buf -> buf.limit(), PORT, 1)) {
+        try (var server = new MessageServer(handler, buf -> buf.limit(), PORT, 1)) {
             server.run();
             var ch = SocketChannel.open();
             ch.connect(new InetSocketAddress(PORT));
@@ -75,7 +75,7 @@ public class AsyncServerTests {
     private void test(int serverThreadPoolSize) {
         var sender = new Sender();
         var receiver = new Receiver();
-        try (var server = new AsyncServer(receiver::receive, buf -> buf.limit(), PORT, serverThreadPoolSize)) {
+        try (var server = new MessageServer(receiver::receive, buf -> buf.limit(), PORT, serverThreadPoolSize)) {
             server.run();
             Stream.generate(System::currentTimeMillis).limit(300)
                 .map(l -> l.toString())

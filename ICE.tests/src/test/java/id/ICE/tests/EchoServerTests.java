@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import static java.util.stream.IntStream.range;
 
-import id.ICE.AsyncServer;
+import id.ICE.MessageServer;
 import id.ICE.scanners.DelimiterMessageScanner;
 
 public class EchoServerTests {
@@ -22,7 +22,7 @@ public class EchoServerTests {
 
     @Test
     public void test_one_client() throws Exception {
-        try (var server = new AsyncServer(this::handle, new DelimiterMessageScanner((byte)'\n'), PORT, 1)) {
+        try (var server = new MessageServer(this::handle, new DelimiterMessageScanner((byte)'\n'), PORT, 1)) {
             server.run();
 
             var ch1 = SocketChannel.open();
@@ -44,7 +44,7 @@ public class EchoServerTests {
 
     @Test
     public void test_concurrency() throws Exception {
-        try (var server = new AsyncServer(this::handle, new DelimiterMessageScanner((byte)'\n'), PORT, 7)) {
+        try (var server = new MessageServer(this::handle, new DelimiterMessageScanner((byte)'\n'), PORT, 7)) {
             server.run();
             range(0, 100).forEach(i -> {
                 ForkJoinPool.commonPool().submit(this::testInteraction);

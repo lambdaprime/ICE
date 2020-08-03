@@ -1,4 +1,4 @@
-package id.ICE;
+package id.ICE.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -7,6 +7,8 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
+import id.ICE.handlers.MessageReceiver;
+import id.ICE.handlers.MessageSender;
 import id.ICE.scanners.MessageScanner;
 
 public class Looper {

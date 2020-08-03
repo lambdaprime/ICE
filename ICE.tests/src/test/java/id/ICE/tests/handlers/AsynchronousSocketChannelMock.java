@@ -1,4 +1,4 @@
-package id.ICE.tests;
+package id.ICE.tests.handlers;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public class AsynchronousSocketChannelMock extends AsynchronousSocketChannel {
+class AsynchronousSocketChannelMock extends AsynchronousSocketChannel {
 
     private ByteBuffer buf;
     private List<Integer> portions;
