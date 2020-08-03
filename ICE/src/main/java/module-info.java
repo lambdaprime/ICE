@@ -17,4 +17,6 @@
 module id.ICE {
     exports id.ICE;
     exports id.ICE.scanners;
+    requires id.xfunction;
+    requires java.logging;
 }

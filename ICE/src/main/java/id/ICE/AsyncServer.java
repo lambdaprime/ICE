@@ -11,11 +11,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 import id.ICE.scanners.MessageScanner;
+import id.xfunction.logging.XLogger;
 
 public class AsyncServer implements Runnable, AutoCloseable {
 
+    private static final Logger LOGGER = XLogger.getLogger(AsyncServer.class);
     private Utils utils = new Utils();
     private Function<ByteBuffer, CompletableFuture<ByteBuffer>> handler;
     private MessageScanner scanner;
@@ -55,9 +58,9 @@ public class AsyncServer implements Runnable, AutoCloseable {
             public void completed(AsynchronousSocketChannel ch, Void att) {
                 if (!group.isShutdown())
                     channel.accept(null, this);
-                System.out.println("incoming connection");
+                LOGGER.fine("incoming connection");
                 new Looper(group, ch, handler, scanner).loop();
-                System.out.println("spawned looper");
+                LOGGER.fine("spawned looper");
             }
             public void failed(Throwable exc, Void att) {
                 utils.handleException(exc);
@@ -68,9 +71,9 @@ public class AsyncServer implements Runnable, AutoCloseable {
     @Override
     public void close() throws Exception {
         group.shutdown();
-        System.out.println("waiting");
+        LOGGER.fine("waiting");
         group.awaitTermination(1000, TimeUnit.MILLISECONDS);
-        System.out.println("awaken");
+        LOGGER.fine("awaken");
         group.shutdownNow();
         channel.close();
     }

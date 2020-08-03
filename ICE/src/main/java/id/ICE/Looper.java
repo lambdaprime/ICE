@@ -42,7 +42,6 @@ public class Looper {
             try {
                 channel.close();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             return CompletableFuture.completedFuture(null);
