@@ -9,6 +9,10 @@ public interface MessageService {
     /**
      * This method is being called by the server each time new
      * message is received.
+     * 
+     * @return once the returned future is complete its value will
+     * be sent back. If the value of future is null the connection
+     * is closed 
      */
     CompletableFuture<ByteBuffer> process(ByteBuffer message);
 }

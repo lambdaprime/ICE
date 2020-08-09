@@ -8,9 +8,11 @@ import java.util.concurrent.CompletableFuture;
 
 import id.ICE.impl.Utils;
 import id.ICE.scanners.MessageScanner;
+import id.xfunction.io.ByteBufferUtils;
 
 public class MessageReceiver implements CompletionHandler<Integer, AsynchronousSocketChannel> {
     private Utils utils = new Utils();
+    private ByteBufferUtils bbUtils = new ByteBufferUtils();
     private ByteBuffer buf;
     private AsynchronousSocketChannel channel;
     private MessageScanner scanner;
@@ -62,7 +64,7 @@ public class MessageReceiver implements CompletionHandler<Integer, AsynchronousS
             return false;
         }
         ByteBuffer message = ByteBuffer.wrap(Arrays.copyOf(buf.array(), pos));
-        buf = utils.shiftToHead(buf, pos, buf.position());
+        buf = bbUtils.shiftToHead(buf, pos, buf.position());
         future.complete(message);
         return true;
     }
