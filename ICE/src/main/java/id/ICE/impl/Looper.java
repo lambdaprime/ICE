@@ -13,6 +13,7 @@ import id.ICE.scanners.MessageScanner;
 
 public class Looper {
 
+    private Utils utils = new Utils();
     private AsynchronousChannelGroup group;
     private MessageReceiver receiver;
     private MessageSender sender;
@@ -36,7 +37,8 @@ public class Looper {
         receiver.receive()
             .thenCompose(service::process)
             .thenCompose(this::send)
-            .thenRun(() -> loop());
+            .thenRun(() -> loop())
+            .whenComplete(this::onComplete);
     }
     
     private CompletableFuture<Void> send(ByteBuffer message) {
@@ -49,5 +51,11 @@ public class Looper {
             return CompletableFuture.completedFuture(null);
         }
         return sender.send(message);
+    }
+    
+    private void onComplete(Void result, Throwable exc) {
+        if (exc != null) {
+            utils.handleException(exc);
+        }
     }
 }
