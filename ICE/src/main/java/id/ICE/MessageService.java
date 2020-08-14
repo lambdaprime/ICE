@@ -11,8 +11,8 @@ public interface MessageService {
      * message is received.
      * 
      * @return once the returned future is complete its value will
-     * be sent back. If the value of future is null the connection
+     * be sent back to the client. If the value of future is null the connection
      * is closed 
      */
-    CompletableFuture<ByteBuffer> process(ByteBuffer message);
+    CompletableFuture<MessageResponse> process(ByteBuffer message);
 }

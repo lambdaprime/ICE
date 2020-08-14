@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import static java.util.stream.IntStream.range;
 
+import id.ICE.MessageResponse;
 import id.ICE.MessageServer;
 import id.ICE.scanners.DelimiterMessageScanner;
 
@@ -81,11 +82,11 @@ public class EchoServerTests {
         }
     }
     
-    private CompletableFuture<ByteBuffer> handle(ByteBuffer message) {
+    private CompletableFuture<MessageResponse> handle(ByteBuffer message) {
         byte[] b = new byte[message.capacity()];
         message.get(b, 0, message.capacity());
         System.out.println(new String(message.array()));
-        return CompletableFuture.completedFuture(ByteBuffer.wrap(b));
+        return CompletableFuture.completedFuture(new MessageResponse(ByteBuffer.wrap(b)));
     }
     
     private String receive(int len, SocketChannel ch) {

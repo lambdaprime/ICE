@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import id.ICE.MessageResponse;
 import id.ICE.MessageServer;
 import id.ICE.MessageService;
 import id.ICE.impl.DelayedCompletableFuture;
@@ -28,7 +29,7 @@ public class MessageServerTests {
     public void test_server_send() {
         String data = "g".repeat(1_000);
         MessageService handler = req -> {
-            return completedFuture(ByteBuffer.wrap(data.getBytes()));
+            return completedFuture(new MessageResponse(ByteBuffer.wrap(data.getBytes())));
         };
         try (var server = new MessageServer(handler, buf -> buf.limit())) {
             server
@@ -50,7 +51,7 @@ public class MessageServerTests {
     public void test_handler_delayed_completion() {
         String data = "g".repeat(1_000);
         MessageService handler = req -> {
-            return new DelayedCompletableFuture<>(ByteBuffer.wrap(data.getBytes()), 3000);
+            return new DelayedCompletableFuture<>(new MessageResponse(ByteBuffer.wrap(data.getBytes())), 3000);
         };
         try (var server = new MessageServer(handler, buf -> buf.limit())) {
             server
@@ -110,7 +111,7 @@ public class MessageServerTests {
     private static class Receiver {
         Collection<String> received = new ConcurrentLinkedQueue<>();
 
-        CompletableFuture<ByteBuffer> receive(ByteBuffer req) {
+        CompletableFuture<MessageResponse> receive(ByteBuffer req) {
             var message = new String(req.array());
             received.add(message);
             System.out.format("%d => %s\n", received.size(), message);

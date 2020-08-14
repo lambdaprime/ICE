@@ -1,11 +1,11 @@
 package id.ICE.impl;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.CompletableFuture;
 
+import id.ICE.MessageResponse;
 import id.ICE.MessageService;
 import id.ICE.handlers.MessageReceiver;
 import id.ICE.handlers.MessageSender;
@@ -41,16 +41,16 @@ public class Looper {
             .whenComplete(this::onComplete);
     }
     
-    private CompletableFuture<Void> send(ByteBuffer message) {
-        if (message == null) {
-            try {
-                channel.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return CompletableFuture.completedFuture(null);
+    private CompletableFuture<Void> send(MessageResponse message) {
+        if (message != null && !message.shouldCloseOnResponse()) {
+            return sender.send(message.getMessage());
         }
-        return sender.send(message);
+        try {
+            channel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return CompletableFuture.completedFuture(null);
     }
     
     private void onComplete(Void result, Throwable exc) {
