@@ -6,7 +6,6 @@ import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -14,6 +13,7 @@ import java.util.logging.Logger;
 import id.ICE.impl.Looper;
 import id.ICE.impl.Utils;
 import id.ICE.scanners.MessageScanner;
+import id.xfunction.concurrent.NamedThreadFactory;
 import id.xfunction.logging.XLogger;
 
 public class MessageServer implements Runnable, AutoCloseable {
@@ -54,7 +54,7 @@ public class MessageServer implements Runnable, AutoCloseable {
     }
 
     private void runInternal() throws IOException {
-        group = AsynchronousChannelGroup.withFixedThreadPool(threads, Executors.defaultThreadFactory());
+        group = AsynchronousChannelGroup.withFixedThreadPool(threads, new NamedThreadFactory("ICE-" + port));
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
