@@ -77,8 +77,12 @@ public class MessageServer implements Runnable, AutoCloseable {
         });
     }
 
+    /**
+     * Calling close on server which is not started has no effect
+     */
     @Override
     public void close() throws Exception {
+        if (group == null) return;
         group.shutdown();
         LOGGER.fine("waiting");
         group.awaitTermination(1000, TimeUnit.MILLISECONDS);

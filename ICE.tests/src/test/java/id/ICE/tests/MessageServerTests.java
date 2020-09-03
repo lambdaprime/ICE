@@ -17,6 +17,7 @@ import id.ICE.MessageResponse;
 import id.ICE.MessageServer;
 import id.ICE.MessageService;
 import id.ICE.impl.DelayedCompletableFuture;
+import id.ICE.scanners.FixedLengthMessageScanner;
 
 public class MessageServerTests {
 
@@ -79,6 +80,12 @@ public class MessageServerTests {
         test(100);
     }
 
+    @Test
+    public void test_close() throws Exception {
+        var server = new MessageServer(req -> null, new FixedLengthMessageScanner(0));
+        server.close();
+    }
+    
     private void test(int serverThreadPoolSize) {
         var sender = new Sender();
         var receiver = new Receiver();
