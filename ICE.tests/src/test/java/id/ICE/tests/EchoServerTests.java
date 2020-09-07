@@ -15,7 +15,7 @@ import static java.util.stream.IntStream.range;
 
 import id.ICE.MessageResponse;
 import id.ICE.MessageServer;
-import id.ICE.scanners.DelimiterMessageScanner;
+import id.ICE.scanners.NewLineMessageScanner;
 
 public class EchoServerTests {
 
@@ -23,7 +23,7 @@ public class EchoServerTests {
 
     @Test
     public void test_one_client() throws Exception {
-        try (var server = new MessageServer(this::handle, new DelimiterMessageScanner((byte)'\n'))) {
+        try (var server = new MessageServer(this::handle, new NewLineMessageScanner())) {
             server
                 .withNumberOfThreads(1)
                 .withPort(PORT);
@@ -48,7 +48,7 @@ public class EchoServerTests {
 
     @Test
     public void test_concurrency() throws Exception {
-        try (var server = new MessageServer(this::handle, new DelimiterMessageScanner((byte)'\n'))) {
+        try (var server = new MessageServer(this::handle, new NewLineMessageScanner())) {
             server
                 .withNumberOfThreads(7)
                 .withPort(PORT);

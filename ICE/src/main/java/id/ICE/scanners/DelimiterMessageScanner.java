@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 /**
  * Scanner for messages where each message are represented
- * as a single line ending with some delimiter char (ex. '\n').
+ * as a single line ending with some delimiter char (ex. ';').
  * 
  * The delimiter is not considered as part of the message.
  */
@@ -12,6 +12,10 @@ public class DelimiterMessageScanner implements MessageScanner {
 
     private byte delim;
     
+    /**
+     * @param delim delimiter character (for UTF-8 characters use conversion
+     * for example for ';' use (byte)';')
+     */
     public DelimiterMessageScanner(byte delim) {
         this.delim = delim;
     }
