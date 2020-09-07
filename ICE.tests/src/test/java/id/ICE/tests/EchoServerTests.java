@@ -23,7 +23,7 @@ public class EchoServerTests {
 
     @Test
     public void test_one_client() throws Exception {
-        try (var server = new MessageServer(this::handle, new NewLineMessageScanner())) {
+        try (var server = new MessageServer(this::echo, new NewLineMessageScanner())) {
             server
                 .withNumberOfThreads(1)
                 .withPort(PORT);
@@ -48,7 +48,7 @@ public class EchoServerTests {
 
     @Test
     public void test_concurrency() throws Exception {
-        try (var server = new MessageServer(this::handle, new NewLineMessageScanner())) {
+        try (var server = new MessageServer(this::echo, new NewLineMessageScanner())) {
             server
                 .withNumberOfThreads(7)
                 .withPort(PORT);
@@ -82,10 +82,13 @@ public class EchoServerTests {
         }
     }
     
-    private CompletableFuture<MessageResponse> handle(ByteBuffer message) {
+    /*
+     * Handler function
+     */
+    private CompletableFuture<MessageResponse> echo(ByteBuffer message) {
+        System.out.println(new String(message.array()));
         byte[] b = new byte[message.capacity()];
         message.get(b, 0, message.capacity());
-        System.out.println(new String(message.array()));
         return CompletableFuture.completedFuture(new MessageResponse(ByteBuffer.wrap(b)));
     }
     
