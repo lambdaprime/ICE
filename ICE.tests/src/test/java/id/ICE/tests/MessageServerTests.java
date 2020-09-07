@@ -6,6 +6,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 
@@ -83,6 +84,27 @@ public class MessageServerTests {
     public void test_close() throws Exception {
         var server = new MessageServer(req -> null, new FixedLengthMessageScanner(0));
         server.close();
+    }
+    
+    @Test
+    public void test_withIgnoreNextRequest_withCloseOnResponse() {
+        var data = List.of("hello", "dash", "berlin");
+        MessageService handler = new StreamService(data);
+        try (MessageServer server = new MessageServer(handler, buf -> buf.limit());
+                SocketChannel ch = SocketChannel.open()) {
+            server
+                .withNumberOfThreads(1)
+                .withPort(PORT);
+            server.run();
+            ch.connect(new InetSocketAddress(PORT));
+            ch.write(ByteBuffer.wrap("hello".getBytes()));
+            for (var expectedMessage: data) {
+                var receiver = new Receiver(ch);
+                Assertions.assertEquals(expectedMessage, receiver.nextLine(expectedMessage.length()));
+            }                
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
     
     /*

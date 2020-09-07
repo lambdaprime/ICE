@@ -7,12 +7,15 @@ import java.util.concurrent.CompletableFuture;
 public interface MessageService {
 
     /**
-     * This method is being called by the server each time new
-     * message is received.
+     * This method is being called by the server to process received
+     * messages.
      * 
-     * @return once the returned future is complete its value will
-     * be sent back to the client. If the value of future is null the connection
-     * is closed 
+     * @param message received client message. If service requested to ignore
+     * next client request (@see withIgnoreNextRequest) then the reference
+     * to original previous message is used instead.
+     * 
+     * @return once the returned future is complete the response will
+     * be processed and sent back to the client.
      */
     CompletableFuture<MessageResponse> process(ByteBuffer message);
 }
