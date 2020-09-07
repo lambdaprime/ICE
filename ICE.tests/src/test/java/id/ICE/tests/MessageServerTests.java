@@ -6,7 +6,6 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 
@@ -86,10 +85,13 @@ public class MessageServerTests {
         server.close();
     }
     
+    /*
+     * Test that service receives messages exactly as they are sent by the sender
+     */
     private void test(int serverThreadPoolSize) {
         var sender = new Sender();
-        var receiver = new Receiver();
-        try (var server = new MessageServer(receiver::receive, buf -> buf.limit())) {
+        var service = new AccumulatorService();
+        try (var server = new MessageServer(service, buf -> buf.limit())) {
             server
                 .withNumberOfThreads(serverThreadPoolSize)
                 .withPort(PORT);
@@ -105,29 +107,15 @@ public class MessageServerTests {
         var sent = sender.sent.stream()
                 .sorted()
                 .toArray();
-//        received.add("ddd");
-        var received = receiver.received.stream()
+        var received = service.received.stream()
                 .sorted()
                 .toArray();
         Assertions.assertArrayEquals(sent, received);
     }
 
-    /**
-     * Receiver which accumulates all received data in internal collection
-     */
-    private static class Receiver {
-        Collection<String> received = new ConcurrentLinkedQueue<>();
-
-        CompletableFuture<MessageResponse> receive(ByteBuffer req) {
-            var message = new String(req.array());
-            received.add(message);
-            System.out.format("%d => %s\n", received.size(), message);
-            return new DelayedCompletableFuture<>(null, 10, 50);
-        }
-    }
-
-    /**
-     * Sender which accumulates all sent data in internal collection
+    /*
+     * Sender which accumulates all sent data in internal collection.
+     * Every time new data needs to be sent it will open a new connection.
      */
     private static class Sender {
         Collection<String> sent = new ConcurrentLinkedQueue<>();
