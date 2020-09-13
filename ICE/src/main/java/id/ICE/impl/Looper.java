@@ -52,9 +52,9 @@ public class Looper {
     public CompletableFuture<ByteBuffer> receive() {
         if (request.isEmpty())
             return receiver.receive().whenComplete((msg, exc) -> {
-                request = Optional.of(msg);
+                request = Optional.of(msg.duplicate());
             });
-        return CompletableFuture.completedFuture(request.get());
+        return CompletableFuture.completedFuture(request.get().duplicate());
     }
     
     private CompletableFuture<Void> send(MessageResponse message) {

@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 
@@ -89,7 +90,20 @@ public class MessageServerTests {
     @Test
     public void test_withIgnoreNextRequest_withCloseOnResponse() {
         var data = List.of("hello", "dash", "berlin");
-        MessageService handler = new StreamService(data);
+        MessageService handler = new StreamService(data) {
+            ByteBuffer orig;
+            @Override
+            public CompletableFuture<MessageResponse> process(
+                    ByteBuffer message) {
+                Assertions.assertEquals(0, message.position());
+                if (orig == null) orig = message;
+                // change position
+                message.get();
+                System.out.println();
+                Assertions.assertEquals(orig, message);
+                return super.process(message);
+            }
+        };
         try (MessageServer server = new MessageServer(handler, buf -> buf.limit());
                 SocketChannel ch = SocketChannel.open()) {
             server
