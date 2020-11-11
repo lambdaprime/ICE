@@ -7,7 +7,11 @@ plugins {
 repositories {
     mavenCentral()
 }
- 
+
+java {
+    modularity.inferModulePath = true
+}
+
 sourceCompatibility = '11'
 targetCompatibility = '11'
 
@@ -15,13 +19,12 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }
 
-compileJava {
-    doFirst {
-        options.compilerArgs = [
-            '--module-path', classpath.asPath,
-        ]
-        classpath = files()  
-    }
+javadoc {
+    options.noTimestamp = true;
+    options.noQualifiers = ["all"];
+    options.noTree = true;
+    options.noIndex = true;
+    options.noNavBar = true;
 }
 
 def releaseFileName = "${rootProject.name}-${version}.zip"
@@ -50,6 +53,12 @@ task cleanRelease(type: Delete) {
     delete "$releaseOutDir"
 }
 
+task packageJavadoc(type: Copy) {
+    from file("$projectDir/build/docs")
+    into file("${project.rootDir}/docs")
+}
+
 packageDistribution.dependsOn createRelease
-build.dependsOn packageDistribution
+createRelease.dependsOn javadoc
+build.dependsOn packageDistribution, packageJavadoc
 clean.dependsOn cleanRelease
