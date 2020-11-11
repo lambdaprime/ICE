@@ -17,8 +17,8 @@ import org.junit.jupiter.api.Test;
 import id.ICE.MessageResponse;
 import id.ICE.MessageServer;
 import id.ICE.MessageService;
-import id.ICE.impl.DelayedCompletableFuture;
 import id.ICE.scanners.FixedLengthMessageScanner;
+import id.xfunction.concurrent.DelayedCompletableFuture;
 
 public class MessageServerTests {
 

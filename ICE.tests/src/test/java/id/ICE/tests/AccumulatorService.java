@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import id.ICE.MessageResponse;
 import id.ICE.MessageService;
-import id.ICE.impl.DelayedCompletableFuture;
+import id.xfunction.concurrent.DelayedCompletableFuture;
 
 /**
  * Service which accumulates all received data into internal collection
