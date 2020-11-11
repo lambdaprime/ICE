@@ -13,7 +13,7 @@ import id.ICE.handlers.MessageReceiver;
 import id.ICE.handlers.MessageSender;
 import id.ICE.scanners.MessageScanner;
 
-/*
+/**
  * Looper which serves single client connection.
  */
 public class Looper {

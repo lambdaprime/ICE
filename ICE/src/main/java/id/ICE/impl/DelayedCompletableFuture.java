@@ -3,6 +3,9 @@ package id.ICE.impl;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 
+/**
+ * Future which delays its completion for a given amount of time
+ */
 public class DelayedCompletableFuture<T> extends CompletableFuture<T> {
 
     /**

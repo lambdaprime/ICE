@@ -3,6 +3,11 @@ package id.ICE;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Processing of client messages are done through this interface.
+ * 
+ * It needs to be thread safe because it can be called by multiple threads.
+ */
 @FunctionalInterface
 public interface MessageService {
 
@@ -16,7 +21,10 @@ public interface MessageService {
      * array() of such ByteBuffer will be reflected in the original ByteBuffer.
      * 
      * @return once the returned future is complete the response will
-     * be processed and sent back to the client.
+     * be processed and sent back to the client. Server decides what to do
+     * with the connection based on returned result:
+     * - if response is null the connection is closed
+     * - otherwise we will wait for next message from the client
      */
     CompletableFuture<MessageResponse> process(ByteBuffer message);
 }

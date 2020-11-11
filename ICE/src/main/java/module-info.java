@@ -1,17 +1,26 @@
 /**
- * This module provides server implementation based on Java Async Channels.
- * Processing of client connections is done through handlers.
+ * ICE is a Java module which helps you to build non-blocking I/O message based servers.
  * 
- * Handler is notified each time server reads some data from the client.
- * All read requests are done asynchronously. It means that handlers may be called
- * with different amounts of data read each time.
+ * With ICE you can implement servers for existing protocols (like HTTP) or your own.
  * 
- * Handler needs to be thread safe because it can be called by multiple threads.
+ * Every message in ICE represented as a ByteBuffer object. That allows you to
+ * get control of its actual format.
  * 
- * Server decides what to do with the connection based on handler result:
- * - if response is null the connection is closed
- * - otherwise we will read new data again
- * When response payload is non null we send it back to the client.
+ * ICE supports following types of interaction:
+ * - request/response -- this is when client sends a request message
+ * and server process it and returns a message back with response
+ * - request/multiple responses -- same as before except in this case
+ * server may returns multiple messages back to the client with multiple responses
+ * 
+ * By default after ICE sends the message back to client it keeps the connection open
+ * waiting for another request. But you can easily change this and ask ICE to close it
+ * right after response is sent.
+ * 
+ * ICE non-blocking I/O is based on Java Async Channels rather than separate native
+ * libraries. This makes ICE really crossplatform and small.
+ * 
+ * ICE has no dependencies on obsolete sun.misc.Unsafe and others so
+ * it makes it easy to include into custom Java runtime images.
  * 
  */
 module id.ICE {

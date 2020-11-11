@@ -3,7 +3,7 @@ package id.ICE.scanners;
 import java.nio.ByteBuffer;
 
 /**
- * Scanner for messages where each message are represented
+ * Scanner for messages where each message is represented
  * as a single line ending with some delimiter char (ex. ';').
  * 
  * The delimiter is not considered as part of the message.

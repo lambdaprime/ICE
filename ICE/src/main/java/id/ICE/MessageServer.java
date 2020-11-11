@@ -16,24 +16,38 @@ import id.ICE.scanners.MessageScanner;
 import id.xfunction.concurrent.NamedThreadFactory;
 import id.xfunction.logging.XLogger;
 
+/**
+ * Runs ICE server on a given port and manages all interaction
+ * between clients and MessageService.
+ */
 public class MessageServer implements Runnable, AutoCloseable {
 
+    private static final int DEFAULT_PORT = 12345;
     private static final Logger LOGGER = XLogger.getLogger(MessageServer.class);
     private Utils utils = new Utils();
-    private MessageService handler;
+    private MessageService service;
     private MessageScanner scanner;
     private int port;
     private int threads;
     private AsynchronousChannelGroup group;
     private AsynchronousServerSocketChannel channel;
 
-    public MessageServer(MessageService handler, MessageScanner scanner) {
-        this.handler = handler;
+    /**
+     * @param service message service implementation which will process
+     * all incoming messages
+     * @param scanner scanner for messages to use
+     */
+    public MessageServer(MessageService service, MessageScanner scanner) {
+        this.service = service;
         this.scanner = scanner;
-        this.port = 12345;
+        this.port = DEFAULT_PORT;
         this.threads = ForkJoinPool.getCommonPoolParallelism();
     }
 
+    /**
+     * Port where to run the server.
+     * @see DEFAULT_PORT for default port.
+     */
     public MessageServer withPort(int port) {
         this.port = port;
         return this;
@@ -43,7 +57,13 @@ public class MessageServer implements Runnable, AutoCloseable {
         this.threads = threads;
         return this;
     }
-    
+
+    /**
+     * Starts ICE server.
+     * 
+     * It opens a given port and starts to accept connections.
+     * For each new incoming connection it will run a looper.
+     */
     @Override
     public void run() {
         try {
@@ -68,7 +88,7 @@ public class MessageServer implements Runnable, AutoCloseable {
                 if (!group.isShutdown())
                     channel.accept(null, this);
                 LOGGER.fine("incoming connection");
-                new Looper(group, ch, handler, scanner).loop();
+                new Looper(group, ch, service, scanner).loop();
                 LOGGER.fine("spawned looper");
             }
             public void failed(Throwable exc, Void att) {

@@ -20,7 +20,6 @@ public class MessageResponse {
 
     /**
      * <p>Close the connection after response is sent.</p>
-     * <p>Intended for request/response protocols.</p>
      */
     public MessageResponse withCloseOnResponse() {
         this.closeOnResponse = true;

@@ -10,6 +10,19 @@ import id.ICE.impl.Utils;
 import id.ICE.scanners.MessageScanner;
 import id.xfunction.io.ByteBufferUtils;
 
+/**
+ * This handler acts as a message receiver and is notified each time server
+ * reads some data from the client.
+ * 
+ * All read requests are done asynchronously. It means that this receiver may be
+ * called with different amounts of data read each time.
+ * 
+ * Receiver relies on message scanner to extract a message from a stream of bytes and
+ * then it passes them back to the looper.
+ * 
+ * Each time receiver reads new portion of data it appends it to internal buffer and
+ * then it uses scanner to tell where message ends in this buffer and another begins.
+ */
 public class MessageReceiver implements CompletionHandler<Integer, AsynchronousSocketChannel> {
     private Utils utils = new Utils();
     private ByteBufferUtils bbUtils = new ByteBufferUtils();
