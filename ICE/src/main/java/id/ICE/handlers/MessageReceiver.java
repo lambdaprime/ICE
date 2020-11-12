@@ -21,6 +21,7 @@
  */
 package id.ICE.handlers;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
@@ -68,6 +69,14 @@ public class MessageReceiver implements CompletionHandler<Integer, AsynchronousS
      */
     @Override
     public void completed(Integer result, AsynchronousSocketChannel channel) {
+        if (result.intValue() == -1) {
+            try {
+                channel.close();
+            } catch (IOException e) {
+                failed(e, channel);
+            }
+            return;
+        }
         if (processMessage()) return;
         if (!buf.hasRemaining()) {
             ByteBuffer newBuf = ByteBuffer.wrap(new byte[(int) Math.pow(buf.capacity(), 2)]);

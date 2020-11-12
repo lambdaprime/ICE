@@ -23,11 +23,13 @@ package id.ICE.tests;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
@@ -36,7 +38,12 @@ import org.junit.jupiter.api.Test;
 import id.ICE.MessageResponse;
 import id.ICE.MessageServer;
 import id.ICE.MessageService;
+import id.ICE.handlers.MessageReceiver;
+import id.ICE.impl.ObjectsFactory;
 import id.ICE.scanners.FixedLengthMessageScanner;
+import id.ICE.scanners.MessageScanner;
+import id.ICE.tests.services.echo.EchoService;
+import id.xfunction.XUtils;
 import id.xfunction.concurrent.DelayedCompletableFuture;
 
 public class IntegrationTests {
@@ -117,7 +124,48 @@ public class IntegrationTests {
             throw new RuntimeException(e);
         }
     }
-    
+
+    /**
+     * There was a bug that client closing the connection could cause
+     * CPU increase due to MessageReceiver::completed being called indefinitely
+     */
+    @Test
+    public void test_client_closed_connection() {
+        var counter = new AtomicInteger();
+        ObjectsFactory.setInstance(new TestObjectsFactory() {
+            @Override
+            public MessageReceiver createMessageReceiver(
+                    AsynchronousSocketChannel channel, MessageScanner scanner) {
+                return new MessageReceiver(channel, scanner) {
+                    @Override
+                    public void completed(Integer result,
+                            AsynchronousSocketChannel channel) {
+                        counter.incrementAndGet();
+                        super.completed(result, channel);
+                    }
+                };
+            }
+        });
+        try (var server = new MessageServer(new EchoService(), new FixedLengthMessageScanner(1000))) {
+            server
+                .withNumberOfThreads(1)
+                .withPort(PORT);
+            server.run();
+            System.out.println("start sending");
+            try (var ch = SocketChannel.open()) {
+                ch.connect(new InetSocketAddress(PORT));
+                ch.write(ByteBuffer.wrap("dd".getBytes()));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("sent");
+            XUtils.sleep(1_000);
+            Assertions.assertEquals(2, counter.get());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }        
+    }
+
     /*
      * Test that service receives messages exactly as they are sent by the sender
      */
