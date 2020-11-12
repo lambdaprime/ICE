@@ -21,8 +21,6 @@
  */
 package id.ICE.tests;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
-
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -41,7 +39,7 @@ import id.ICE.MessageService;
 import id.ICE.scanners.FixedLengthMessageScanner;
 import id.xfunction.concurrent.DelayedCompletableFuture;
 
-public class MessageServerTests {
+public class IntegrationTests {
 
     private static final int PORT = 1234;
 
@@ -50,28 +48,6 @@ public class MessageServerTests {
      */
     @Test
     public void test_server_send() {
-        String data = "g".repeat(1_000);
-        MessageService handler = req -> {
-            return completedFuture(new MessageResponse(ByteBuffer.wrap(data.getBytes())));
-        };
-        try (var server = new MessageServer(handler, buf -> buf.limit())) {
-            server
-                .withNumberOfThreads(1)
-                .withPort(PORT);
-            server.run();
-            var ch = SocketChannel.open();
-            ch.connect(new InetSocketAddress(PORT));
-            ch.write(ByteBuffer.wrap(data.getBytes()));
-            ByteBuffer buf = ByteBuffer.wrap(new byte[data.length()]);
-            while (ch.read(buf) > 0);
-            Assertions.assertArrayEquals(data.getBytes(), buf.array());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Test
-    public void test_handler_delayed_completion() {
         String data = "g".repeat(1_000);
         MessageService handler = req -> {
             return new DelayedCompletableFuture<>(new MessageResponse(ByteBuffer.wrap(data.getBytes())), 3000);
