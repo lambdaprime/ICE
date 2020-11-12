@@ -45,19 +45,26 @@ public class Looper {
     private MessageSender sender;
     private AsynchronousSocketChannel channel;
     private MessageService service;
+    private MessageScanner scanner;
     private Optional<ByteBuffer> request = Optional.empty();
     private MessageResponse response = new MessageResponse(ByteBuffer.allocate(0));
+    private ObjectsFactory factory = ObjectsFactory.getInstance();
     
     public Looper(AsynchronousChannelGroup group, AsynchronousSocketChannel channel,
             MessageService service, MessageScanner scanner) {
         this.group = group;
         this.service = service;
         this.channel = channel;
-        sender = new MessageSender(channel);
-        receiver = new MessageReceiver(channel, scanner);
+        this.scanner = scanner;
     }
-    
-    public void loop() {
+
+    public void start() {
+        sender = new MessageSender(channel);
+        receiver = factory.createMessageReceiver(channel, scanner);
+        loop();
+    }
+
+    private void loop() {
         if (!channel.isOpen())
             return;
         if (group.isShutdown())
@@ -70,7 +77,7 @@ public class Looper {
             .thenRun(() -> loop());
     }
     
-    public CompletableFuture<ByteBuffer> receive() {
+    private CompletableFuture<ByteBuffer> receive() {
         if (request.isEmpty())
             return receiver.receive().whenComplete((msg, exc) -> {
                 request = Optional.of(msg.duplicate());

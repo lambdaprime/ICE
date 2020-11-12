@@ -31,7 +31,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import id.ICE.impl.Looper;
+import id.ICE.impl.ObjectsFactory;
 import id.ICE.impl.Utils;
 import id.ICE.scanners.MessageScanner;
 import id.xfunction.concurrent.NamedThreadFactory;
@@ -52,6 +52,7 @@ public class MessageServer implements Runnable, AutoCloseable {
     private int threads;
     private AsynchronousChannelGroup group;
     private AsynchronousServerSocketChannel channel;
+    private ObjectsFactory factory = ObjectsFactory.getInstance();
 
     /**
      * @param service message service implementation which will process
@@ -109,7 +110,7 @@ public class MessageServer implements Runnable, AutoCloseable {
                 if (!group.isShutdown())
                     channel.accept(null, this);
                 LOGGER.fine("incoming connection");
-                new Looper(group, ch, service, scanner).loop();
+                factory.createLooper(group, ch, service, scanner).start();
                 LOGGER.fine("spawned looper");
             }
             public void failed(Throwable exc, Void att) {
