@@ -19,13 +19,12 @@
  * Authors:
  * - lambdaprime <id.blackmesa@gmail.com>
  */
-package id.ICE.tests;
+package id.ICE.tests.services.echo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -34,17 +33,16 @@ import org.junit.jupiter.api.Test;
 
 import static java.util.stream.IntStream.range;
 
-import id.ICE.MessageResponse;
 import id.ICE.MessageServer;
 import id.ICE.scanners.NewLineMessageScanner;
 
-public class EchoServerTests {
+public class EchoServiceTests {
 
     private static final int PORT = 1234;
 
     @Test
     public void test_one_client() throws Exception {
-        try (var server = new MessageServer(this::echo, new NewLineMessageScanner())) {
+        try (var server = new MessageServer(new EchoService(), new NewLineMessageScanner())) {
             server
                 .withNumberOfThreads(1)
                 .withPort(PORT);
@@ -69,7 +67,7 @@ public class EchoServerTests {
 
     @Test
     public void test_concurrency() throws Exception {
-        try (var server = new MessageServer(this::echo, new NewLineMessageScanner())) {
+        try (var server = new MessageServer(new EchoService(), new NewLineMessageScanner())) {
             server
                 .withNumberOfThreads(7)
                 .withPort(PORT);
@@ -103,16 +101,6 @@ public class EchoServerTests {
         }
     }
     
-    /*
-     * Handler function
-     */
-    private CompletableFuture<MessageResponse> echo(ByteBuffer message) {
-        System.out.println(new String(message.array()));
-        byte[] b = new byte[message.capacity()];
-        message.get(b, 0, message.capacity());
-        return CompletableFuture.completedFuture(new MessageResponse(ByteBuffer.wrap(b)));
-    }
-    
     private String receive(int len, SocketChannel ch) {
         ByteBuffer buf = ByteBuffer.wrap(new byte[len + 1]);
         try {
@@ -132,5 +120,16 @@ public class EchoServerTests {
         }
     }
 
+    public static void main(String[] args) {
+        try (var server = new MessageServer(new EchoService(), new NewLineMessageScanner())) {
+            server
+                .withNumberOfThreads(1)
+                .withPort(10007);
+            server.run();
+            System.in.read();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
 
