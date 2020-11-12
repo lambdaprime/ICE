@@ -42,6 +42,39 @@
  * <p>ICE has no dependencies on obsolete sun.misc.Unsafe and others so
  * it makes it easy to include into custom Java runtime images.</p>
  * 
+ * <h1>Samples</h1>
+ * 
+ * <p>Here are the samples for different basic server implementations.</p>
+ * 
+ * <h2>Echo service</h2>
+ * 
+ * <p>Echo service receives a string from the client and sends it back.</p>
+ * 
+ * <p>Service implementation:</p>
+ * <pre>{@code
+public class EchoService implements MessageService {
+    public CompletableFuture<MessageResponse> process(ByteBuffer message) {
+        System.out.println(new String(message.array()));
+        byte[] b = new byte[message.capacity()];
+        message.get(b, 0, message.capacity());
+        return CompletableFuture.completedFuture(new MessageResponse(ByteBuffer.wrap(b)));
+    }
+}
+ * }</pre>
+ * 
+ * <p>Usage:</p>
+ * <pre>{@code
+try (var server = new MessageServer(new EchoService(), new NewLineMessageScanner())) {
+    server
+        .withNumberOfThreads(1)
+        .withPort(10007);
+    server.run();
+    System.in.read();
+} catch (Exception e) {
+    e.printStackTrace();
+}
+ * }</pre>
+ * 
  */
 module id.ICE {
     exports id.ICE;
