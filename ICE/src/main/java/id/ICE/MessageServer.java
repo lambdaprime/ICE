@@ -18,7 +18,7 @@ import id.xfunction.logging.XLogger;
 
 /**
  * Runs ICE server on a given port and manages all interaction
- * between clients and MessageService.
+ * between clients and {@link MessageService}.
  */
 public class MessageServer implements Runnable, AutoCloseable {
 
