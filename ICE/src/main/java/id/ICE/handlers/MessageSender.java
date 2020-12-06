@@ -25,17 +25,17 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.CompletableFuture;
-
-import id.ICE.impl.Utils;
+import java.util.function.Consumer;
 
 /**
- * Async sends the message and notifies the caller thru the CompletableFuture
+ * Async sends the message and notifies the caller thru the CompletableFuture.
+ * This handler is not thread safe and designed to serve only one send request at a time.
  */
 public class MessageSender implements CompletionHandler<Integer, AsynchronousSocketChannel> {
-    private Utils utils = new Utils();
     private ByteBuffer message;
     private AsynchronousSocketChannel channel;
     private CompletableFuture<Void> future;
+    private Consumer<Throwable> errorHandler;
     
     public MessageSender(AsynchronousSocketChannel channel) {
         this.channel = channel;
@@ -50,14 +50,16 @@ public class MessageSender implements CompletionHandler<Integer, AsynchronousSoc
 
     @Override
     public void failed(Throwable exc, AsynchronousSocketChannel channel) {
-        utils.handleException(exc);
+        errorHandler.accept(exc);
     }
 
     /**
-     * Send data
+     * Send data asynchronously and return the future which will be
+     * completed once all data is sent.
      */
-    public CompletableFuture<Void> send(ByteBuffer message) {
+    public CompletableFuture<Void> send(ByteBuffer message, Consumer<Throwable> errorHandler) {
         this.message = message;
+        this.errorHandler = errorHandler;
         future = new CompletableFuture<>();
         channel.write(message, null, this);
         return future;

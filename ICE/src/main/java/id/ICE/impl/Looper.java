@@ -93,7 +93,8 @@ public class Looper {
         }
         if (!message.shouldIgnoreNextRequest())
             request = Optional.empty();
-        return sender.send(message.getMessage());
+        return sender.send(message.getMessage(),
+            message.getErrorHandler().orElse(this::failed));
     }
     
     private void onComplete(Void result, Throwable exc) {
@@ -110,5 +111,9 @@ public class Looper {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void failed(Throwable exc) {
+        utils.handleException(exc);
     }
 }

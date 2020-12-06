@@ -22,6 +22,7 @@
 package id.ICE.tests;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -33,19 +34,31 @@ import id.ICE.MessageService;
  * waiting any reply from the client.
  */
 class StreamService implements MessageService {
-    private final List<String> data;
-    private int c = 0;
+    private final List<String> msgs;
+    private boolean infinite;
 
-    public StreamService(List<String> data) {
-        this.data = data;
+    public StreamService(List<String> msgs) {
+        this.msgs = new ArrayList<>(msgs);
+    }
+
+    /**
+     * Stream data infinite number of times
+     */
+    public StreamService(String msg) {
+        msgs = new ArrayList<>();
+        msgs.add(msg);
+        infinite = true;
     }
 
     @Override
     public CompletableFuture<MessageResponse> process(
             ByteBuffer message) {
-        var response = new MessageResponse(ByteBuffer.wrap(data.get(c++).getBytes()))
+        String msg = msgs.get(0);
+        if (!infinite)
+            msgs.remove(0);
+        var response = new MessageResponse(ByteBuffer.wrap(msg.getBytes()))
                 .withIgnoreNextRequest();
-        if (c == data.size())
+        if (msgs.isEmpty())
             response.withCloseOnResponse();
         return CompletableFuture.completedFuture(response);
     }

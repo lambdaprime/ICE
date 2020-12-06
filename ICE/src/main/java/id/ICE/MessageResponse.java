@@ -22,6 +22,8 @@
 package id.ICE;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Response message sent to the client
@@ -31,6 +33,7 @@ public class MessageResponse {
     private ByteBuffer message;
     private boolean closeOnResponse;
     private boolean ignoreNextRequest;
+    private Consumer<Throwable> handler;
     
     /**
      * @param message message to be sent to the client
@@ -62,7 +65,16 @@ public class MessageResponse {
         this.ignoreNextRequest = true;
         return this;
     }
-    
+
+    /**
+     * Set up error handler which will be called in case of an error delivering the message
+     * response to the client.
+     */
+    public MessageResponse withErrorHandler(Consumer<Throwable> errorHandler) {
+        this.handler = errorHandler;
+        return this;
+    }
+
     /**
      * Message response
      */
@@ -82,5 +94,12 @@ public class MessageResponse {
      */
     public boolean shouldIgnoreNextRequest() {
         return ignoreNextRequest;
+    }
+
+    /**
+     * Return error handler if any
+     */
+    public Optional<Consumer<Throwable>> getErrorHandler() {
+        return Optional.ofNullable(handler);
     }
 }

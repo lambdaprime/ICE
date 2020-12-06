@@ -21,6 +21,7 @@
  */
 package id.ICE.tests;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
@@ -42,6 +44,7 @@ import id.ICE.handlers.MessageReceiver;
 import id.ICE.impl.ObjectsFactory;
 import id.ICE.scanners.FixedLengthMessageScanner;
 import id.ICE.scanners.MessageScanner;
+import id.ICE.scanners.VarLengthMessageScanner;
 import id.ICE.tests.services.echo.EchoService;
 import id.xfunction.XUtils;
 import id.xfunction.concurrent.DelayedCompletableFuture;
@@ -51,7 +54,9 @@ public class IntegrationTests {
     private static final int PORT = 1234;
 
     /**
-     * Test that server sends all data back correctly
+     * Test that server sends all data back correctly.
+     * It does not cover cases when data sent in portions (it may happen when amount
+     * of data to be sent exceeds what system can send in one operation).
      */
     @Test
     public void test_server_send() {
@@ -88,6 +93,7 @@ public class IntegrationTests {
     @Test
     public void test_close() throws Exception {
         var server = new MessageServer(req -> null, new FixedLengthMessageScanner(0));
+        server.run();
         server.close();
     }
     
@@ -192,6 +198,39 @@ public class IntegrationTests {
                 .sorted()
                 .toArray();
         Assertions.assertArrayEquals(sent, received);
+    }
+
+    /**
+     * Test that ICE pass the error back to the service:
+     * - if service set withErrorHandler on the message
+     * - if client closed the connection abruptly and ICE failed to deliver
+     * the service response to the client
+     */
+    @Test
+    public void test_withErrorHandler() throws Exception {
+        Throwable[] exception = new Throwable[1];
+        Consumer<Throwable> errorHandler = exc -> exception[0] = exc;
+        var service = new StreamService("hello") {
+            @Override
+            public CompletableFuture<MessageResponse> process(
+                    ByteBuffer message) {
+                return super.process(message).thenApply(response -> response.withErrorHandler(errorHandler));
+            }
+        };
+        try (var server = new MessageServer(service, new VarLengthMessageScanner())) {
+            server
+                .withPort(PORT)
+                .run();
+            System.out.println("start sending");
+            try (var ch = SocketChannel.open()) {
+                ch.connect(new InetSocketAddress(PORT));
+                ch.write(ByteBuffer.wrap("dd".getBytes()));
+            }
+            System.out.println("sent");
+            XUtils.sleep(1_000);
+            Assertions.assertNotNull(exception[0]);
+            Assertions.assertTrue(exception[0] instanceof IOException);
+        }        
     }
 
     /*
