@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import id.ICE.MessageRequest;
 import id.ICE.MessageResponse;
 import id.ICE.MessageServer;
 import id.ICE.MessageService;
@@ -104,14 +105,11 @@ public class IntegrationTests {
             ByteBuffer orig;
             @Override
             public CompletableFuture<MessageResponse> process(
-                    ByteBuffer message) {
-                Assertions.assertEquals(0, message.position());
+                    MessageRequest request) {
+                var message = request.getMessage().orElse(orig);
                 if (orig == null) orig = message;
-                // change position
-                message.get();
-                System.out.println();
                 Assertions.assertEquals(orig, message);
-                return super.process(message);
+                return super.process(request);
             }
         };
         try (MessageServer server = new MessageServer(handler, buf -> buf.limit());
@@ -213,7 +211,7 @@ public class IntegrationTests {
         var service = new StreamService("hello") {
             @Override
             public CompletableFuture<MessageResponse> process(
-                    ByteBuffer message) {
+                    MessageRequest message) {
                 return super.process(message).thenApply(response -> response.withErrorHandler(errorHandler));
             }
         };

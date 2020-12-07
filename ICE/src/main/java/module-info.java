@@ -53,7 +53,8 @@
  * <p>Service implementation:</p>
  * <pre>{@code
 public class EchoService implements MessageService {
-    public CompletableFuture<MessageResponse> process(ByteBuffer message) {
+    public CompletableFuture<MessageResponse> process(MessageRequest request) {
+        var message = request.getMessage().get();
         System.out.println(new String(message.array()));
         byte[] b = new byte[message.capacity()];
         message.get(b, 0, message.capacity());

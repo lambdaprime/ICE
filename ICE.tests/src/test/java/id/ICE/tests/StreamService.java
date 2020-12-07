@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import id.ICE.MessageRequest;
 import id.ICE.MessageResponse;
 import id.ICE.MessageService;
 
@@ -51,8 +52,7 @@ class StreamService implements MessageService {
     }
 
     @Override
-    public CompletableFuture<MessageResponse> process(
-            ByteBuffer message) {
+    public CompletableFuture<MessageResponse> process(MessageRequest request) {
         String msg = msgs.get(0);
         if (!infinite)
             msgs.remove(0);

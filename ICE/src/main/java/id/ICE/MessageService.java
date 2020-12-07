@@ -21,7 +21,6 @@
  */
 package id.ICE;
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -39,13 +38,7 @@ public interface MessageService {
      * This method is being called by the server to process received
      * messages.
      * 
-     * @param message received client message. If service requested to ignore
-     * next client request (see {@link MessageResponse#withIgnoreNextRequest}) then
-     * this method will be called with the duplicate of the original (first)
-     * ByteBuffer message.
-     * 
-     * Any changes to internal array() of such ByteBuffer will be reflected in
-     * the original ByteBuffer.
+     * @param message Received client message.
      * 
      * @return once the returned future is complete the response will
      * be processed and sent back to the client. Server decides what to do
@@ -55,5 +48,5 @@ public interface MessageService {
      * <li>otherwise we will wait for next message from the client</li>
      * </ul>
      */
-    CompletableFuture<MessageResponse> process(ByteBuffer message);
+    CompletableFuture<MessageResponse> process(MessageRequest message);
 }

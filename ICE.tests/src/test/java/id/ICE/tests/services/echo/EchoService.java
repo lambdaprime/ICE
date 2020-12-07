@@ -24,6 +24,7 @@ package id.ICE.tests.services.echo;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
+import id.ICE.MessageRequest;
 import id.ICE.MessageResponse;
 import id.ICE.MessageService;
 
@@ -33,7 +34,8 @@ import id.ICE.MessageService;
 public class EchoService implements MessageService {
 
     @Override
-    public CompletableFuture<MessageResponse> process(ByteBuffer message) {
+    public CompletableFuture<MessageResponse> process(MessageRequest request) {
+        var message = request.getMessage().get();
         System.out.println(new String(message.array()));
         byte[] b = new byte[message.capacity()];
         message.get(b, 0, message.capacity());

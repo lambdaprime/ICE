@@ -28,6 +28,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import id.ICE.MessageRequest;
 import id.ICE.MessageResponse;
 import id.ICE.MessageService;
 import id.ICE.handlers.MessageReceiver;
@@ -46,7 +47,7 @@ public class Looper {
     private AsynchronousSocketChannel channel;
     private MessageService service;
     private MessageScanner scanner;
-    private Optional<ByteBuffer> request = Optional.empty();
+    private boolean shouldIgnoreNextRequest;
     private MessageResponse response = new MessageResponse(ByteBuffer.allocate(0));
     private ObjectsFactory factory = ObjectsFactory.getInstance();
     
@@ -77,12 +78,11 @@ public class Looper {
             .thenRun(() -> loop());
     }
     
-    private CompletableFuture<ByteBuffer> receive() {
-        if (request.isEmpty())
-            return receiver.receive().whenComplete((msg, exc) -> {
-                request = Optional.of(msg.duplicate());
-            });
-        return CompletableFuture.completedFuture(request.get().duplicate());
+    private CompletableFuture<MessageRequest> receive() {
+        if (!shouldIgnoreNextRequest)
+            return receiver.receive().thenApply(msg ->
+                new MessageRequest(channel.hashCode(), Optional.of(msg)));
+        return CompletableFuture.completedFuture(new MessageRequest(channel.hashCode(), Optional.empty()));
     }
     
     private CompletableFuture<Void> send(MessageResponse message) {
@@ -91,8 +91,7 @@ public class Looper {
             closeChannel();
             return CompletableFuture.completedFuture(null);
         }
-        if (!message.shouldIgnoreNextRequest())
-            request = Optional.empty();
+        shouldIgnoreNextRequest = message.shouldIgnoreNextRequest(); 
         return sender.send(message.getMessage(),
             message.getErrorHandler().orElse(this::failed));
     }
