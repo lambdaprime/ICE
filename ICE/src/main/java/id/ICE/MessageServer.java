@@ -111,7 +111,7 @@ public class MessageServer implements Runnable, AutoCloseable {
                     channel.accept(null, this);
                 LOGGER.fine("incoming connection");
                 factory.createLooper(group, ch, service, scanner).start();
-                LOGGER.fine("spawned looper");
+                LOGGER.fine("spawned new looper, now waiting for another connection...");
             }
             public void failed(Throwable exc, Void att) {
                 utils.handleException(exc);

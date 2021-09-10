@@ -26,12 +26,16 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
+
+import id.xfunction.logging.XLogger;
 
 /**
  * Async sends the message and notifies the caller thru the CompletableFuture.
  * This handler is not thread safe and designed to serve only one send request at a time.
  */
 public class MessageSender implements CompletionHandler<Integer, AsynchronousSocketChannel> {
+    private static final Logger LOGGER = XLogger.getLogger(MessageSender.class);
     private ByteBuffer message;
     private AsynchronousSocketChannel channel;
     private CompletableFuture<Void> future;
@@ -43,8 +47,11 @@ public class MessageSender implements CompletionHandler<Integer, AsynchronousSoc
 
     @Override
     public void completed(Integer result, AsynchronousSocketChannel channel) {
-        if (message.hasRemaining() && channel.isOpen()) 
+        if (message.hasRemaining() && channel.isOpen()) {
             channel.write(message, null, this);
+            return;
+        }
+        LOGGER.fine("Message sent");
         future.complete(null);
     }
 
@@ -58,6 +65,7 @@ public class MessageSender implements CompletionHandler<Integer, AsynchronousSoc
      * completed once all data is sent.
      */
     public CompletableFuture<Void> send(ByteBuffer message, Consumer<Throwable> errorHandler) {
+        LOGGER.fine("Sending message response");
         this.message = message;
         this.errorHandler = errorHandler;
         future = new CompletableFuture<>();
