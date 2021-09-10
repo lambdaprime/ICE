@@ -47,8 +47,8 @@ import id.ICE.scanners.FixedLengthMessageScanner;
 import id.ICE.scanners.MessageScanner;
 import id.ICE.scanners.VarLengthMessageScanner;
 import id.ICE.tests.services.echo.EchoService;
-import id.xfunction.XUtils;
 import id.xfunction.concurrent.DelayedCompletableFuture;
+import id.xfunction.lang.XThread;
 
 public class IntegrationTests {
 
@@ -163,7 +163,7 @@ public class IntegrationTests {
                 throw new RuntimeException(e);
             }
             System.out.println("sent");
-            XUtils.sleep(1_000);
+            XThread.sleep(1_000);
             Assertions.assertEquals(2, counter.get());
         } catch (Exception e) {
             e.printStackTrace();
@@ -225,7 +225,7 @@ public class IntegrationTests {
                 ch.write(ByteBuffer.wrap("dd".getBytes()));
             }
             System.out.println("sent");
-            XUtils.sleep(1_000);
+            XThread.sleep(1_000);
             Assertions.assertNotNull(exception[0]);
             Assertions.assertTrue(exception[0] instanceof IOException);
         }        
