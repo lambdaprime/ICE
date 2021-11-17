@@ -1,6 +1,6 @@
 **ICE** is a Java module which helps you to build non-blocking I/O message based servers.
 
-lambdaprime <id.blackmesa@gmail.com>
+lambdaprime <intid@protonmail.com>
 
 # Requirements
 
