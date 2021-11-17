@@ -76,6 +76,11 @@ try (var server = new MessageServer(new EchoService(), new NewLineMessageScanner
 }
  * }</pre>
  * 
+ * <p>Now you can connect to local port 10007 and type any text which will be repeated to
+ * you back once you press Enter.
+ * 
+ * @see <a href="https://github.com/lambdaprime/ICE/releases">Download ICE</a>
+ * @see <a href="https://github.com/lambdaprime/ICE">Github</a>
  */
 module id.ICE {
     exports id.ICE;
