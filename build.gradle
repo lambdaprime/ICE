@@ -1,9 +1,14 @@
+// Requires gradle 7.2
+// gradle clean build
+// gradle clean test
+
 allprojects {
     repositories {
-        jcenter() 
+        mavenCentral()
+        mavenLocal()
     }
 }
 
-subprojects {
-    version = '1.0'
+ext {
+    releaseFileName = "${projectName}-v${version}.zip"
 }

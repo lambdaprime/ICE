@@ -1,22 +1,19 @@
-// gradle clean build publishToMavenLocal
-
 plugins {
     id 'java'
 }
 
-repositories {
-    mavenCentral()
-}
+dependencies {
+   implementation 'io.github.lambdaprime:id.xfunction:14.0'
 
-java {
-    modularity.inferModulePath = true
+   // transitively export following dependency to tests project
+   apiElements 'io.github.lambdaprime:id.xfunction:14.0'
 }
 
 sourceCompatibility = '11'
 targetCompatibility = '11'
 
-dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+java {
+    modularity.inferModulePath = true
 }
 
 javadoc {
@@ -27,38 +24,33 @@ javadoc {
     options.noNavBar = true;
 }
 
-def releaseFileName = "${rootProject.name}-${version}.zip"
-def releaseDir = "$projectDir/release"
-def releaseOutDir = "${buildDir}/release/${rootProject.name}"
+def packageDir = "$buildDir/package/${projectName}"
+
+ext.artifacts = fileTree(include: ['*'], dir: "$packageDir/libs")
+
+task createRelease(type: Zip) {
+    archiveFileName = "$releaseFileName"
+    destinationDirectory = file("$projectDir/release")
+    from file("$packageDir/..")
+}
 
 task copyLibs(type: Copy) {
     from "$projectDir/libs"
     from jar.archiveFile
-    into "${releaseOutDir}/libs"
+    into "${packageDir}/libs"
 }
 
-task createRelease(type: Copy, dependsOn: copyLibs) {
+task createPackage(type: Copy, dependsOn: copyLibs) {
     from "${project.rootDir}/README.md"
-    into "${releaseOutDir}"
-}
-
-task packageDistribution(type: Zip) {
-    archiveFileName = releaseFileName
-    destinationDirectory = file("$projectDir/release")
-    from file("$releaseOutDir")
+    from "${project.rootDir}/LICENSE-2.0.txt"
+    into packageDir
 }
 
 task cleanRelease(type: Delete) {
-    delete "$releaseDir"
-    delete "$releaseOutDir"
+    delete "$packageDir"
+    delete "$projectDir/release"
 }
 
-task packageJavadoc(type: Copy) {
-    from file("$projectDir/build/docs")
-    into file("${project.rootDir}/docs")
-}
-
-packageDistribution.dependsOn createRelease
-createRelease.dependsOn javadoc
-build.dependsOn packageDistribution, packageJavadoc
+createRelease.dependsOn createPackage
+assemble.dependsOn createRelease
 clean.dependsOn cleanRelease

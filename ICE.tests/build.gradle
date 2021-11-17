@@ -1,39 +1,23 @@
-// gradle clean test
-
 plugins {
     id 'java'
 }
 
 apply plugin : 'eclipse'
 
-repositories {
-    mavenCentral()
-    mavenLocal()
-}
-
 dependencies {
     testImplementation('org.junit.jupiter:junit-jupiter-api:5.4.2')
     testImplementation project(':ICE')
-    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.4.2')
+    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.4.2')
+    testRuntimeOnly('org.junit.platform:junit-platform-commons:1.7.0')
 }
 
 sourceCompatibility = '11'
 targetCompatibility = '11'
 
-version = "1.0"
-
-compileTestJava {
-    doFirst {
-        options.compilerArgs = [
-            '--module-path', classpath.asPath,
-        ]
-        classpath = files()
-    }
+java {
+    modularity.inferModulePath = true
 }
 
 test {
     useJUnitPlatform()
-    filter {
-        exclude '**/module-info.class'
-    }
 }
