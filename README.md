@@ -10,6 +10,16 @@ Java 11
 
 You can download **ICE** from <https://github.com/lambdaprime/ICE/releases>
 
+Or you can add dependency to it as follows:
+
+Gradle:
+
+```
+dependencies {
+    compile 'io.github.lambdaprime:ICE:1.0'
+}
+```
+
 # Documentation
 
 Javadoc is available here <http://portal2.atwebpages.com/ICE>
