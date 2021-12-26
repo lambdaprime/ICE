@@ -1,10 +1,8 @@
 **ICE** is a Java module which helps you to build non-blocking I/O message based servers.
 
-lambdaprime <intid@protonmail.com>
-
 # Requirements
 
-Java 11
+Java 11+
 
 # Download
 
@@ -20,6 +18,10 @@ dependencies {
 }
 ```
 
-# Documentation
+# Links
 
-Javadoc is available here <http://portal2.atwebpages.com/ICE>
+[ICE documentation](http://portal2.atwebpages.com/ICE)
+
+# Contributors
+
+lambdaprime <intid@protonmail.com>
