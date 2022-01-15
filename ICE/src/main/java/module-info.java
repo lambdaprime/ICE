@@ -53,12 +53,16 @@
  * <p>Service implementation:</p>
  * <pre>{@code
 public class EchoService implements MessageService {
+    @Override
     public CompletableFuture<MessageResponse> process(MessageRequest request) {
-        var message = request.getMessage().get();
-        System.out.println(new String(message.array()));
-        byte[] b = new byte[message.capacity()];
-        message.get(b, 0, message.capacity());
-        return CompletableFuture.completedFuture(new MessageResponse(ByteBuffer.wrap(b)));
+        // obtaining and printing data from the request
+        var inputData = request.getMessage().get();
+        System.out.println(new String(inputData.array()));
+        
+        // generating response with same data and sending back
+        byte[] outputData = new byte[inputData.capacity()];
+        inputData.get(outputData, 0, inputData.capacity());
+        return CompletableFuture.completedFuture(new MessageResponse(ByteBuffer.wrap(outputData)));
     }
 }
  * }</pre>
@@ -70,6 +74,8 @@ try (var server = new MessageServer(new EchoService(), new NewLineMessageScanner
         .withNumberOfThreads(1)
         .withPort(10007);
     server.run();
+    
+    // keep running until user press Enter
     System.in.read();
 } catch (Exception e) {
     e.printStackTrace();
