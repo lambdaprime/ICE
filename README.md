@@ -14,7 +14,7 @@ Gradle:
 
 ```
 dependencies {
-    compile 'io.github.lambdaprime:ICE:1.0'
+    compile 'io.github.lambdaprime:ICE:2.0'
 }
 ```
 
