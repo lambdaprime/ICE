@@ -1,3 +1,13 @@
+// include xfunction for updateVersion
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.github.lambdaprime:id.xfunction:14.0"
+    }
+}
+
 plugins {
     id 'java'
 }
@@ -61,19 +71,20 @@ createRelease.dependsOn createPackage
 assemble.dependsOn createRelease
 clean.dependsOn cleanRelease
 
-task updateVersion() {
-    if (version.contains("SNAPSHOT")) return;
-    println "Updating version to " + version
-    new id.xfunction.text.Substitutor()
-        .withRegexpSupport()
-        .substitute(java.nio.file.Paths.get("${project.rootDir}/README.md"), Map.of(
-            "io.github.lambdaprime:ICE:[0-9.]+", "io.github.lambdaprime:ICE:" + version
-        ));
-}
-
-createPackage.dependsOn updateVersion
-
 if (project.hasProperty('publish')) {
+
+  // update version only during publishing
+  task updateVersion() {
+      def version = rootProject.version;
+      if (version.contains("SNAPSHOT")) return;
+      println "Updating version to " + version
+      new id.xfunction.text.Substitutor()
+          .withRegexpSupport()
+          .substitute(java.nio.file.Paths.get("${project.rootDir}/README.md"), Map.of(
+              "io.github.lambdaprime:ICE:[0-9.]+", "io.github.lambdaprime:ICE:" + version
+          ));
+  }
+  createPackage.dependsOn updateVersion
 
   // Initially it was taken from https://central.sonatype.org/publish/publish-gradle/
   // but since Gradle removed this plugin https://docs.gradle.org/7.0/userguide/upgrading_version_6.html#removal_of_the_legacy_maven_plugin

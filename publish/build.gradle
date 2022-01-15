@@ -1,10 +1,12 @@
 /*************************************************
+
 First we need publish main project to staging repo.
 
 Run following command in the root folder of the project:
 
+gradle clean build
 gradle publish \
- -PpublishToStagingRepo=true \
+ -Ppublish=true \
  -Psigning.secretKeyRingFile=XXX \
  -Psigning.password=XXX \
  -Psigning.keyId=XXX \
@@ -52,4 +54,3 @@ props.each { prop ->
 ins.close()
 
 apply from: '../build.gradle'
-
