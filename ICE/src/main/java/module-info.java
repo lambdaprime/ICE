@@ -51,10 +51,10 @@
  * <p>Echo service receives a string from the client and sends it back.</p>
  * 
  * <p>Service implementation:</p>
- * <pre>{@code
+ * <pre><code>
 public class EchoService implements MessageService {
-    @Override
-    public CompletableFuture<MessageResponse> process(MessageRequest request) {
+    &#64;Override
+    public CompletableFuture&lt;MessageResponse&gt; process(MessageRequest request) {
         // obtaining and printing data from the request
         var inputData = request.getMessage().get();
         System.out.println(new String(inputData.array()));
@@ -65,10 +65,10 @@ public class EchoService implements MessageService {
         return CompletableFuture.completedFuture(new MessageResponse(ByteBuffer.wrap(outputData)));
     }
 }
- * }</pre>
+ * </code></pre>
  * 
  * <p>Usage:</p>
- * <pre>{@code
+ * <pre><code>
 try (var server = new MessageServer(new EchoService(), new NewLineMessageScanner())) {
     server
         .withNumberOfThreads(1)
@@ -80,7 +80,7 @@ try (var server = new MessageServer(new EchoService(), new NewLineMessageScanner
 } catch (Exception e) {
     e.printStackTrace();
 }
- * }</pre>
+ * </code></pre>
  * 
  * <p>Now you can connect to local port 10007 and type any text which will be repeated to
  * you back once you press Enter.
