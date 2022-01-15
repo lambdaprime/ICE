@@ -2,6 +2,8 @@ plugins {
     id 'java'
 }
 
+apply plugin : 'eclipse'
+
 dependencies {
    implementation 'io.github.lambdaprime:id.xfunction:14.0'
 
@@ -14,6 +16,12 @@ targetCompatibility = '11'
 
 java {
     modularity.inferModulePath = true
+}
+
+jar {
+    manifest { 
+        attributes 'Implementation-Version': "${rootProject.version}"
+    }
 }
 
 javadoc {
@@ -53,7 +61,19 @@ createRelease.dependsOn createPackage
 assemble.dependsOn createRelease
 clean.dependsOn cleanRelease
 
-if (project.hasProperty('publishToStagingRepo')) {
+task updateVersion() {
+    if (version.contains("SNAPSHOT")) return;
+    println "Updating version to " + version
+    new id.xfunction.text.Substitutor()
+        .withRegexpSupport()
+        .substitute(java.nio.file.Paths.get("${project.rootDir}/README.md"), Map.of(
+            "io.github.lambdaprime:ICE:[0-9.]+", "io.github.lambdaprime:ICE:" + version
+        ));
+}
+
+createPackage.dependsOn updateVersion
+
+if (project.hasProperty('publish')) {
 
   // Initially it was taken from https://central.sonatype.org/publish/publish-gradle/
   // but since Gradle removed this plugin https://docs.gradle.org/7.0/userguide/upgrading_version_6.html#removal_of_the_legacy_maven_plugin
@@ -85,7 +105,7 @@ if (project.hasProperty('publishToStagingRepo')) {
         pom {
           name = 'ICE'
           description = 'Java module for building non-blocking I/O message based servers'
-          url = 'https://github.com/lambdaprime/ICE'
+          url = 'http://portal2.atwebpages.com/ICE'
 
           licenses {
             license {
@@ -107,22 +127,22 @@ if (project.hasProperty('publishToStagingRepo')) {
         }
       }
     }
-      repositories {
-        maven {
-          credentials {
-            username ossrhUsername
-            password ossrhPassword
-          }
-          url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+    repositories {
+      maven {
+        credentials {
+          username ossrhUsername
+          password ossrhPassword
         }
+        url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
       }
-    
+    }
   }
 
-  apply plugin: 'signing'
+  if (project.hasProperty('signing.secretKeyRingFile')) {
+    apply plugin: 'signing'
 
-  signing {
-    sign publishing.publications.mavenJava
+    signing {
+      sign publishing.publications.mavenJava
+    }
   }
-
 }

@@ -1,1 +1,1 @@
-Tests for ICE library.
+Tests for ICE module.

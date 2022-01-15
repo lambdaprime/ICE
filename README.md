@@ -6,7 +6,7 @@ Java 11+
 
 # Download
 
-You can download **ICE** from <https://github.com/lambdaprime/ICE/releases>
+[Release versions](https://github.com/lambdaprime/ICE/releases)
 
 Or you can add dependency to it as follows:
 
@@ -20,7 +20,8 @@ dependencies {
 
 # Links
 
-[ICE documentation](http://portal2.atwebpages.com/ICE)
+[Documentation](http://portal2.atwebpages.com/ICE)
+[Development](DEVELOPMENT.md)
 
 # Contributors
 

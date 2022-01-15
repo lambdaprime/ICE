@@ -3,4 +3,5 @@
 **/.gradle/
 **/.settings/
 **/src/gen/
-docs/
+**/.project
+**/.classpath
