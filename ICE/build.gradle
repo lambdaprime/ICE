@@ -1,45 +1,44 @@
 // include xfunction for updateVersion
 buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "io.github.lambdaprime:id.xfunction:14.0"
-    }
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath "io.github.lambdaprime:id.xfunction:23.0"
+  }
 }
 
 plugins {
-    id 'java'
+  id 'com.diffplug.spotless'
+  // only if you build Java library
+  id 'java-library'
 }
 
 apply plugin : 'eclipse'
 
 dependencies {
-   implementation 'io.github.lambdaprime:id.xfunction:14.0'
-
-   // transitively export following dependency to tests project
-   apiElements 'io.github.lambdaprime:id.xfunction:14.0'
+  api 'io.github.lambdaprime:id.xfunction:25.0'
 }
 
-sourceCompatibility = '11'
-targetCompatibility = '11'
-
-java {
-    modularity.inferModulePath = true
+configurations {
+  customConfig.extendsFrom implementation
 }
 
 jar {
-    manifest { 
-        attributes 'Implementation-Version': "${rootProject.version}"
-    }
+  manifest { 
+    attributes 'Implementation-Version': "${rootProject.version}"
+  }
 }
 
 javadoc {
-    options.noTimestamp = true;
-    options.noQualifiers = ["all"];
-    options.noTree = true;
-    options.noIndex = true;
-    options.noNavBar = true;
+  options.noTimestamp = true
+  options.noQualifiers = ["all"]
+  options.noTree = true
+  options.noIndex = true
+  options.noNavBar = true
+  // ignore missing @return, @param etc
+  options.addBooleanOption('Xdoclint:all,-missing', true)
+  options.addStringOption('-show-packages', 'exported')
 }
 
 def packageDir = "$buildDir/package/${projectName}"
@@ -63,35 +62,38 @@ task createPackage(type: Copy, dependsOn: copyLibs) {
 }
 
 task cleanRelease(type: Delete) {
-    delete "$packageDir"
-    delete "$projectDir/release"
+  delete "$packageDir"
+  delete "$projectDir/release/*-SNAPSHOT.zip"
 }
 
 createRelease.dependsOn createPackage
 assemble.dependsOn createRelease
 clean.dependsOn cleanRelease
 
-if (project.hasProperty('publish')) {
+// run spotless and format code before the build
+classes.dependsOn spotlessApply
 
-  // update version only during publishing
-  task updateVersion() {
-      def version = rootProject.version;
-      if (version.contains("SNAPSHOT")) return;
-      println "Updating version to " + version
-      new id.xfunction.text.Substitutor()
-          .withRegexpSupport()
-          .substitute(java.nio.file.Paths.get("${project.rootDir}/README.md"), Map.of(
-              "io.github.lambdaprime:ICE:[0-9.]+", "io.github.lambdaprime:ICE:" + version
-          ));
-  }
-  createPackage.dependsOn updateVersion
+task updateVersion() {
+  // update version only when it is specified and non SNAPSHOT version is built
+  // 'unspecified' is the default value for the version in Gradle if it is not set
+  if (!version || version == "unspecified" || version.contains("SNAPSHOT")) return;
+  println "Updating version to " + version
+  new id.xfunction.text.Substitutor()
+    .withRegexpSupport()
+    .substitute(java.nio.file.Paths.get("${project.rootDir}/README.md"), Map.of(
+      "io.github.lambdaprime:ICE:[0-9.]+", "io.github.lambdaprime:ICE:" + version
+    ));
+}
+createRelease.dependsOn updateVersion
+
+if (project.hasProperty('publish')) {
 
   // Initially it was taken from https://central.sonatype.org/publish/publish-gradle/
   // but since Gradle removed this plugin https://docs.gradle.org/7.0/userguide/upgrading_version_6.html#removal_of_the_legacy_maven_plugin
   // it was rewritten for new one
 
   task javadocJar(type: Jar) {
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from "README-javadoc.txt"
   }
 

@@ -15,10 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE.tests.handlers;
 
 import java.io.IOException;
@@ -35,6 +31,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author lambdaprime intid@protonmail.com
+ */
 class AsynchronousSocketChannelMock extends AsynchronousSocketChannel {
 
     private ByteBuffer buf;
@@ -49,8 +48,7 @@ class AsynchronousSocketChannelMock extends AsynchronousSocketChannel {
     }
 
     @Override
-    public void close() throws IOException {
-    }
+    public void close() throws IOException {}
 
     @Override
     public boolean isOpen() {
@@ -68,14 +66,13 @@ class AsynchronousSocketChannelMock extends AsynchronousSocketChannel {
     }
 
     @Override
-    public AsynchronousSocketChannel bind(SocketAddress local)
-            throws IOException {
+    public AsynchronousSocketChannel bind(SocketAddress local) throws IOException {
         return null;
     }
 
     @Override
-    public <T> AsynchronousSocketChannel setOption(SocketOption<T> name,
-            T value) throws IOException {
+    public <T> AsynchronousSocketChannel setOption(SocketOption<T> name, T value)
+            throws IOException {
         return null;
     }
 
@@ -95,10 +92,8 @@ class AsynchronousSocketChannelMock extends AsynchronousSocketChannel {
     }
 
     @Override
-    public <A> void connect(SocketAddress remote, A attachment,
-            CompletionHandler<Void, ? super A> handler) {
-        
-    }
+    public <A> void connect(
+            SocketAddress remote, A attachment, CompletionHandler<Void, ? super A> handler) {}
 
     @Override
     public Future<Void> connect(SocketAddress remote) {
@@ -106,19 +101,24 @@ class AsynchronousSocketChannelMock extends AsynchronousSocketChannel {
     }
 
     @Override
-    public <A> void read(ByteBuffer dst, long timeout, TimeUnit unit,
-            A attachment, CompletionHandler<Integer, ? super A> handler) {
-        executor.execute(() -> {
-            if (curPortion >= portions.size()) return;
-            if (portions.get(curPortion) > dst.remaining()) {
-                portions.add(curPortion + 1, portions.get(curPortion) - dst.remaining());
-                portions.set(curPortion, dst.remaining());
-            }
-            byte[] b = new byte[portions.get(curPortion++)];
-            buf.get(b);
-            dst.put(b);
-            handler.completed(b.length, attachment);
-        });
+    public <A> void read(
+            ByteBuffer dst,
+            long timeout,
+            TimeUnit unit,
+            A attachment,
+            CompletionHandler<Integer, ? super A> handler) {
+        executor.execute(
+                () -> {
+                    if (curPortion >= portions.size()) return;
+                    if (portions.get(curPortion) > dst.remaining()) {
+                        portions.add(curPortion + 1, portions.get(curPortion) - dst.remaining());
+                        portions.set(curPortion, dst.remaining());
+                    }
+                    byte[] b = new byte[portions.get(curPortion++)];
+                    buf.get(b);
+                    dst.put(b);
+                    handler.completed(b.length, attachment);
+                });
     }
 
     @Override
@@ -127,16 +127,24 @@ class AsynchronousSocketChannelMock extends AsynchronousSocketChannel {
     }
 
     @Override
-    public <A> void read(ByteBuffer[] dsts, int offset, int length,
-            long timeout, TimeUnit unit, A attachment,
-            CompletionHandler<Long, ? super A> handler) {
-    }
+    public <A> void read(
+            ByteBuffer[] dsts,
+            int offset,
+            int length,
+            long timeout,
+            TimeUnit unit,
+            A attachment,
+            CompletionHandler<Long, ? super A> handler) {}
 
     @Override
-    public <A> void write(ByteBuffer src, long timeout, TimeUnit unit,
-            A attachment, CompletionHandler<Integer, ? super A> handler) {
+    public <A> void write(
+            ByteBuffer src,
+            long timeout,
+            TimeUnit unit,
+            A attachment,
+            CompletionHandler<Integer, ? super A> handler) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -146,11 +154,16 @@ class AsynchronousSocketChannelMock extends AsynchronousSocketChannel {
     }
 
     @Override
-    public <A> void write(ByteBuffer[] srcs, int offset, int length,
-            long timeout, TimeUnit unit, A attachment,
+    public <A> void write(
+            ByteBuffer[] srcs,
+            int offset,
+            int length,
+            long timeout,
+            TimeUnit unit,
+            A attachment,
             CompletionHandler<Long, ? super A> handler) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -158,5 +171,4 @@ class AsynchronousSocketChannelMock extends AsynchronousSocketChannel {
         // TODO Auto-generated method stub
         return null;
     }
-
 }

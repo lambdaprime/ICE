@@ -15,12 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE;
 
+import id.ICE.impl.ObjectsFactory;
+import id.ICE.impl.Utils;
+import id.ICE.scanners.MessageScanner;
+import id.xfunction.concurrent.NamedThreadFactory;
+import id.xfunction.logging.XLogger;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousChannelGroup;
@@ -31,15 +32,11 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import id.ICE.impl.ObjectsFactory;
-import id.ICE.impl.Utils;
-import id.ICE.scanners.MessageScanner;
-import id.xfunction.concurrent.NamedThreadFactory;
-import id.xfunction.logging.XLogger;
-
 /**
- * Runs ICE server on a given port and manages all interaction
- * between clients and {@link MessageService}.
+ * Runs ICE server on a given port and manages all interaction between clients and {@link
+ * MessageService}.
+ *
+ * @author lambdaprime intid@protonmail.com
  */
 public class MessageServer implements Runnable, AutoCloseable {
 
@@ -55,8 +52,7 @@ public class MessageServer implements Runnable, AutoCloseable {
     private ObjectsFactory factory = ObjectsFactory.getInstance();
 
     /**
-     * @param service message service implementation which will process
-     * all incoming messages
+     * @param service message service implementation which will process all incoming messages
      * @param scanner scanner for messages to use
      */
     public MessageServer(MessageService service, MessageScanner scanner) {
@@ -68,6 +64,7 @@ public class MessageServer implements Runnable, AutoCloseable {
 
     /**
      * Port where to run the server.
+     *
      * @see DEFAULT_PORT for default port.
      */
     public MessageServer withPort(int port) {
@@ -82,9 +79,9 @@ public class MessageServer implements Runnable, AutoCloseable {
 
     /**
      * Starts ICE server.
-     * 
-     * It opens a given port and starts to accept connections.
-     * For each new incoming connection it will run a looper.
+     *
+     * <p>It opens a given port and starts to accept connections. For each new incoming connection
+     * it will run a looper.
      */
     @Override
     public void run() {
@@ -96,32 +93,35 @@ public class MessageServer implements Runnable, AutoCloseable {
     }
 
     private void runInternal() throws IOException {
-        group = AsynchronousChannelGroup.withFixedThreadPool(threads, new NamedThreadFactory("ICE-" + port));
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                group.shutdown();
-            }
-        });
-        channel = AsynchronousServerSocketChannel.open(group)
-            .bind(new InetSocketAddress(port));
-        channel.accept(null, new CompletionHandler<AsynchronousSocketChannel, Void>() {
-            public void completed(AsynchronousSocketChannel ch, Void att) {
-                if (!group.isShutdown())
-                    channel.accept(null, this);
-                LOGGER.fine("incoming connection");
-                factory.createLooper(group, ch, service, scanner).start();
-                LOGGER.fine("spawned new looper, now waiting for another connection...");
-            }
-            public void failed(Throwable exc, Void att) {
-                utils.handleException(exc);
-            }
-        });
+        group =
+                AsynchronousChannelGroup.withFixedThreadPool(
+                        threads, new NamedThreadFactory("ICE-" + port));
+        Runtime.getRuntime()
+                .addShutdownHook(
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                group.shutdown();
+                            }
+                        });
+        channel = AsynchronousServerSocketChannel.open(group).bind(new InetSocketAddress(port));
+        channel.accept(
+                null,
+                new CompletionHandler<AsynchronousSocketChannel, Void>() {
+                    public void completed(AsynchronousSocketChannel ch, Void att) {
+                        if (!group.isShutdown()) channel.accept(null, this);
+                        LOGGER.fine("incoming connection");
+                        factory.createLooper(group, ch, service, scanner).start();
+                        LOGGER.fine("spawned new looper, now waiting for another connection...");
+                    }
+
+                    public void failed(Throwable exc, Void att) {
+                        utils.handleException(exc);
+                    }
+                });
     }
 
-    /**
-     * Calling close on server which is not started has no effect
-     */
+    /** Calling close on server which is not started has no effect */
     @Override
     public void close() throws Exception {
         if (group == null) return;

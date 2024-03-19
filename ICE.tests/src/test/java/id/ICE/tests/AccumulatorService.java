@@ -15,23 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE.tests;
-
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import id.ICE.MessageRequest;
 import id.ICE.MessageResponse;
 import id.ICE.MessageService;
 import id.xfunction.concurrent.DelayedCompletableFuture;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Service which accumulates all received data into internal collection
+ *
+ * @author lambdaprime intid@protonmail.com
  */
 class AccumulatorService implements MessageService {
     Collection<String> received = new ConcurrentLinkedQueue<>();

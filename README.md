@@ -14,7 +14,7 @@ Gradle:
 
 ```
 dependencies {
-    compile 'io.github.lambdaprime:ICE:2.0'
+  implementation 'io.github.lambdaprime:ICE:2.0'
 }
 ```
 
@@ -24,6 +24,6 @@ dependencies {
 
 [Development](DEVELOPMENT.md)
 
-# Contributors
+# Contacts
 
 lambdaprime <intid@protonmail.com>

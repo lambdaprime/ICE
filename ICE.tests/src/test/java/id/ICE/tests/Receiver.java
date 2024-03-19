@@ -15,15 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE.tests;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+/**
+ * @author lambdaprime intid@protonmail.com
+ */
 public class Receiver {
 
     private SocketChannel channel;
@@ -32,7 +31,7 @@ public class Receiver {
     public Receiver(SocketChannel channel) {
         this.channel = channel;
     }
-    
+
     public String nextLine(int len) {
         try {
             buf.rewind();

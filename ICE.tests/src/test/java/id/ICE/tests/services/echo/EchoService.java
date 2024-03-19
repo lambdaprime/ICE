@@ -15,21 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE.tests.services.echo;
-
-import java.nio.ByteBuffer;
-import java.util.concurrent.CompletableFuture;
 
 import id.ICE.MessageRequest;
 import id.ICE.MessageResponse;
 import id.ICE.MessageService;
+import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Echo service receives a string from the client and sends it back.
+ *
+ * @author lambdaprime intid@protonmail.com
  */
 public class EchoService implements MessageService {
     @Override
@@ -37,7 +34,7 @@ public class EchoService implements MessageService {
         // obtaining and printing data from the request
         var inputData = request.getMessage().get();
         System.out.println(new String(inputData.array()));
-        
+
         // generating response with same data and sending back
         byte[] outputData = new byte[inputData.capacity()];
         inputData.get(outputData, 0, inputData.capacity());

@@ -15,18 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE.impl;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousChannelGroup;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import id.ICE.MessageRequest;
 import id.ICE.MessageResponse;
@@ -34,9 +23,17 @@ import id.ICE.MessageService;
 import id.ICE.handlers.MessageReceiver;
 import id.ICE.handlers.MessageSender;
 import id.ICE.scanners.MessageScanner;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousChannelGroup;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Looper which serves single client connection.
+ *
+ * @author lambdaprime intid@protonmail.com
  */
 public class Looper {
 
@@ -50,9 +47,12 @@ public class Looper {
     private boolean shouldIgnoreNextRequest;
     private MessageResponse response = new MessageResponse(ByteBuffer.allocate(0));
     private ObjectsFactory factory = ObjectsFactory.getInstance();
-    
-    public Looper(AsynchronousChannelGroup group, AsynchronousSocketChannel channel,
-            MessageService service, MessageScanner scanner) {
+
+    public Looper(
+            AsynchronousChannelGroup group,
+            AsynchronousSocketChannel channel,
+            MessageService service,
+            MessageScanner scanner) {
         this.group = group;
         this.service = service;
         this.channel = channel;
@@ -66,44 +66,41 @@ public class Looper {
     }
 
     private void loop() {
-        if (!channel.isOpen())
-            return;
-        if (group.isShutdown())
-            return;
-        
+        if (!channel.isOpen()) return;
+        if (group.isShutdown()) return;
+
         receive()
-            .thenCompose(service::process)
-            .thenCompose(this::send)
-            .whenComplete(this::onComplete)
-            .thenRun(() -> loop());
+                .thenCompose(service::process)
+                .thenCompose(this::send)
+                .whenComplete(this::onComplete)
+                .thenRun(() -> loop());
     }
-    
+
     private CompletableFuture<MessageRequest> receive() {
         if (!shouldIgnoreNextRequest)
-            return receiver.receive().thenApply(msg ->
-                new MessageRequest(channel.hashCode(), Optional.of(msg)));
-        return CompletableFuture.completedFuture(new MessageRequest(channel.hashCode(), Optional.empty()));
+            return receiver.receive()
+                    .thenApply(msg -> new MessageRequest(channel.hashCode(), Optional.of(msg)));
+        return CompletableFuture.completedFuture(
+                new MessageRequest(channel.hashCode(), Optional.empty()));
     }
-    
+
     private CompletableFuture<Void> send(MessageResponse message) {
         response = message;
         if (message == null) {
             closeChannel();
             return CompletableFuture.completedFuture(null);
         }
-        shouldIgnoreNextRequest = message.shouldIgnoreNextRequest(); 
-        return sender.send(message.getMessage(),
-            message.getErrorHandler().orElse(this::failed));
+        shouldIgnoreNextRequest = message.shouldIgnoreNextRequest();
+        return sender.send(message.getMessage(), message.getErrorHandler().orElse(this::failed));
     }
-    
+
     private void onComplete(Void result, Throwable exc) {
-        if (response.shouldCloseOnResponse())
-            closeChannel();
+        if (response.shouldCloseOnResponse()) closeChannel();
         if (exc != null) {
             utils.handleException(exc);
         }
     }
-    
+
     private void closeChannel() {
         try {
             channel.close();

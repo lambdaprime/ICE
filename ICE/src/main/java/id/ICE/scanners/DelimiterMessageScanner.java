@@ -15,27 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE.scanners;
 
 import java.nio.ByteBuffer;
 
 /**
- * Scanner for messages where each message is represented
- * as a single line ending with some delimiter char (ex. ';').
- * 
- * The delimiter is not considered as part of the message.
+ * Scanner for messages where each message is represented as a single line ending with some
+ * delimiter char (ex. ';').
+ *
+ * <p>The delimiter is not considered as part of the message.
+ *
+ * @author lambdaprime intid@protonmail.com
  */
 public class DelimiterMessageScanner implements MessageScanner {
 
     private byte delim;
-    
+
     /**
-     * @param delim delimiter character (for UTF-8 characters use conversion
-     * for example for ';' use (byte)';')
+     * @param delim delimiter character (for UTF-8 characters use conversion for example for ';' use
+     *     (byte)';')
      */
     public DelimiterMessageScanner(byte delim) {
         this.delim = delim;
@@ -48,5 +46,4 @@ public class DelimiterMessageScanner implements MessageScanner {
         }
         return -1;
     }
-
 }

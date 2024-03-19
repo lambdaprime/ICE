@@ -15,10 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE;
 
 import java.nio.ByteBuffer;
@@ -27,6 +23,8 @@ import java.util.function.Consumer;
 
 /**
  * Response message sent to the client
+ *
+ * @author lambdaprime intid@protonmail.com
  */
 public class MessageResponse {
 
@@ -34,7 +32,7 @@ public class MessageResponse {
     private boolean closeOnResponse;
     private boolean ignoreNextRequest;
     private Consumer<Throwable> handler;
-    
+
     /**
      * @param message message to be sent to the client
      */
@@ -42,24 +40,20 @@ public class MessageResponse {
         this.message = message;
     }
 
-    /**
-     * <p>Close the connection after response is sent.</p>
-     */
+    /** Close the connection after response is sent. */
     public MessageResponse withCloseOnResponse() {
         this.closeOnResponse = true;
         return this;
     }
-    
+
     /**
-     * <p>By default every time your service provides a *response* message, ICE
-     * sends it back to the client and waits for the next *request* message from
-     * it (see ICE looper description).</p>
-     * 
-     * <p>With this flag set ICE will not wait for next request from the client
-     * instead it will proceed to {@link MessageService} for another message which needs
-     * to be send to the client.</p>
-     * 
-     * <p>You may want to use it when you need your service to send stream of messages.</p>
+     * By default every time your service provides a *response* message, ICE sends it back to the
+     * client and waits for the next *request* message from it (see ICE looper description).
+     *
+     * <p>With this flag set ICE will not wait for next request from the client instead it will
+     * proceed to {@link MessageService} for another message which needs to be send to the client.
+     *
+     * <p>You may want to use it when you need your service to send stream of messages.
      */
     public MessageResponse withIgnoreNextRequest() {
         this.ignoreNextRequest = true;
@@ -67,38 +61,30 @@ public class MessageResponse {
     }
 
     /**
-     * Set up error handler which will be called in case of an error delivering the message
-     * response to the client.
+     * Set up error handler which will be called in case of an error delivering the message response
+     * to the client.
      */
     public MessageResponse withErrorHandler(Consumer<Throwable> errorHandler) {
         this.handler = errorHandler;
         return this;
     }
 
-    /**
-     * Message response
-     */
+    /** Message response */
     public ByteBuffer getMessage() {
         return message;
     }
 
-    /**
-     * Return whether {@link withCloseOnResponse} is set or not
-     */
+    /** Return whether {@link withCloseOnResponse} is set or not */
     public boolean shouldCloseOnResponse() {
         return closeOnResponse;
     }
 
-    /**
-     * Return whether {@link withIgnoreNextRequest} is set or not
-     */
+    /** Return whether {@link withIgnoreNextRequest} is set or not */
     public boolean shouldIgnoreNextRequest() {
         return ignoreNextRequest;
     }
 
-    /**
-     * Return error handler if any
-     */
+    /** Return error handler if any */
     public Optional<Consumer<Throwable>> getErrorHandler() {
         return Optional.ofNullable(handler);
     }

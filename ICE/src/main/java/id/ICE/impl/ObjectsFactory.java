@@ -15,47 +15,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE.impl;
-
-import java.nio.channels.AsynchronousChannelGroup;
-import java.nio.channels.AsynchronousSocketChannel;
 
 import id.ICE.MessageService;
 import id.ICE.handlers.MessageReceiver;
 import id.ICE.scanners.MessageScanner;
+import java.nio.channels.AsynchronousChannelGroup;
+import java.nio.channels.AsynchronousSocketChannel;
 
 /**
- * This factory is a single point for managing all dependencies in ICE.
- * It is used for tests.
+ * This factory is a single point for managing all dependencies in ICE. It is used for tests.
+ *
+ * @author lambdaprime intid@protonmail.com
  */
 public class ObjectsFactory {
 
     private static ObjectsFactory instance = new ObjectsFactory();
 
-    protected ObjectsFactory() {
-    }
+    protected ObjectsFactory() {}
 
-    public MessageReceiver createMessageReceiver(AsynchronousSocketChannel channel, MessageScanner scanner) {
+    public MessageReceiver createMessageReceiver(
+            AsynchronousSocketChannel channel, MessageScanner scanner) {
         return new MessageReceiver(channel, scanner);
     }
 
-    public MessageReceiver createMessageReceiver(AsynchronousSocketChannel channel, MessageScanner scanner, int bufSize) {
+    public MessageReceiver createMessageReceiver(
+            AsynchronousSocketChannel channel, MessageScanner scanner, int bufSize) {
         return new MessageReceiver(channel, scanner, bufSize);
     }
 
-    public Looper createLooper(AsynchronousChannelGroup group, AsynchronousSocketChannel channel,
-        MessageService service, MessageScanner scanner) {
+    public Looper createLooper(
+            AsynchronousChannelGroup group,
+            AsynchronousSocketChannel channel,
+            MessageService service,
+            MessageScanner scanner) {
         return new Looper(group, channel, service, scanner);
     }
-    
+
     public static ObjectsFactory getInstance() {
         return instance;
     }
-    
+
     public static void setInstance(ObjectsFactory objectsFactory) {
         instance = objectsFactory;
     }

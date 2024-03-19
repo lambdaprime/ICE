@@ -15,20 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE.tests.handlers;
 
+import id.ICE.handlers.MessageReceiver;
 import java.nio.ByteBuffer;
 import java.util.List;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import id.ICE.handlers.MessageReceiver;
-
+/**
+ * @author lambdaprime intid@protonmail.com
+ */
 public class MessageReceiverTests {
 
     @Test
@@ -48,8 +45,7 @@ public class MessageReceiverTests {
         var expectedMessage = "a".repeat(100).getBytes();
         ByteBuffer buf = ByteBuffer.wrap(expectedMessage);
         var channel = new AsynchronousSocketChannelMock(buf, List.of(20, 20, 20, 20, 20));
-        var receiver = new MessageReceiver(channel, b -> b.limit() < 100? -1: 100, 10);
+        var receiver = new MessageReceiver(channel, b -> b.limit() < 100 ? -1 : 100, 10);
         Assertions.assertArrayEquals(expectedMessage, receiver.receive().get().array());
     }
 }
-

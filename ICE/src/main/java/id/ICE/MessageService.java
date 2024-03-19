@@ -15,38 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
  * Processing of client messages are done through this interface.
- * 
- * It needs to be thread safe because it can be called by multiple threads.
- * 
- * <p>Every message in ICE represented as a ByteBuffer object. That allows you to
- * get control of its actual format.</p>
+ *
+ * <p>It needs to be thread safe because it can be called by multiple threads.
+ *
+ * <p>Every message in ICE represented as a ByteBuffer object. That allows you to get control of its
+ * actual format.
+ *
+ * @author lambdaprime intid@protonmail.com
  */
 @FunctionalInterface
 public interface MessageService {
 
     /**
-     * This method is being called by the server to process received
-     * messages.
-     * 
+     * This method is being called by the server to process received messages.
+     *
      * @param message Received client message.
-     * 
-     * @return once the returned future is complete the response will
-     * be processed and sent back to the client. Server decides what to do
-     * with the connection based on returned result:
-     * <ul>
-     * <li>if response is null the connection is closed</li>
-     * <li>otherwise we will wait for next message from the client</li>
-     * </ul>
+     * @return once the returned future is complete the response will be processed and sent back to
+     *     the client. Server decides what to do with the connection based on returned result:
+     *     <ul>
+     *       <li>if response is null the connection is closed
+     *       <li>otherwise we will wait for next message from the client
+     *     </ul>
      */
     CompletableFuture<MessageResponse> process(MessageRequest message);
 }

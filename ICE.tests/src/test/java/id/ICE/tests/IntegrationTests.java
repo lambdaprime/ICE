@@ -15,27 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE.tests;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 import id.ICE.MessageRequest;
 import id.ICE.MessageResponse;
@@ -49,38 +29,56 @@ import id.ICE.scanners.VarLengthMessageScanner;
 import id.ICE.tests.services.echo.EchoService;
 import id.xfunction.concurrent.DelayedCompletableFuture;
 import id.xfunction.lang.XThread;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
+/**
+ * @author lambdaprime intid@protonmail.com
+ */
 public class IntegrationTests {
 
     private static final int PORT = 1234;
 
     /**
-     * Test that server sends all data back correctly.
-     * It does not cover cases when data sent in portions (it may happen when amount
-     * of data to be sent exceeds what system can send in one operation).
+     * Test that server sends all data back correctly. It does not cover cases when data sent in
+     * portions (it may happen when amount of data to be sent exceeds what system can send in one
+     * operation).
      */
     @Test
     public void test_server_send() {
         String data = "g".repeat(1_000);
-        MessageService handler = req -> {
-            return new DelayedCompletableFuture<>(new MessageResponse(ByteBuffer.wrap(data.getBytes())), 3000);
-        };
+        MessageService handler =
+                req -> {
+                    return new DelayedCompletableFuture<>(
+                            new MessageResponse(ByteBuffer.wrap(data.getBytes())), 3000);
+                };
         try (var server = new MessageServer(handler, buf -> buf.limit())) {
-            server
-                .withNumberOfThreads(1)
-                .withPort(PORT);
+            server.withNumberOfThreads(1).withPort(PORT);
             server.run();
             var ch = SocketChannel.open();
             ch.connect(new InetSocketAddress(PORT));
             ch.write(ByteBuffer.wrap(data.getBytes()));
             ByteBuffer buf = ByteBuffer.wrap(new byte[data.length()]);
-            while (ch.read(buf) > 0);
+            while (ch.read(buf) > 0)
+                ;
             Assertions.assertArrayEquals(data.getBytes(), buf.array());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     @Test
     public void testSingleThread() {
         test(1);
@@ -97,63 +95,63 @@ public class IntegrationTests {
         server.run();
         server.close();
     }
-    
+
     @Test
     public void test_withIgnoreNextRequest_withCloseOnResponse() {
         var data = List.of("hello", "dash", "berlin");
-        MessageService handler = new StreamService(data) {
-            ByteBuffer orig;
-            @Override
-            public CompletableFuture<MessageResponse> process(
-                    MessageRequest request) {
-                var message = request.getMessage().orElse(orig);
-                if (orig == null) orig = message;
-                Assertions.assertEquals(orig, message);
-                return super.process(request);
-            }
-        };
+        MessageService handler =
+                new StreamService(data) {
+                    ByteBuffer orig;
+
+                    @Override
+                    public CompletableFuture<MessageResponse> process(MessageRequest request) {
+                        var message = request.getMessage().orElse(orig);
+                        if (orig == null) orig = message;
+                        Assertions.assertEquals(orig, message);
+                        return super.process(request);
+                    }
+                };
         try (MessageServer server = new MessageServer(handler, buf -> buf.limit());
                 SocketChannel ch = SocketChannel.open()) {
-            server
-                .withNumberOfThreads(1)
-                .withPort(PORT);
+            server.withNumberOfThreads(1).withPort(PORT);
             server.run();
             ch.connect(new InetSocketAddress(PORT));
             ch.write(ByteBuffer.wrap("hello".getBytes()));
-            for (var expectedMessage: data) {
+            for (var expectedMessage : data) {
                 var receiver = new Receiver(ch);
-                Assertions.assertEquals(expectedMessage, receiver.nextLine(expectedMessage.length()));
-            }                
+                Assertions.assertEquals(
+                        expectedMessage, receiver.nextLine(expectedMessage.length()));
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     /**
-     * There was a bug that client closing the connection could cause
-     * CPU increase due to MessageReceiver::completed being called indefinitely
+     * There was a bug that client closing the connection could cause CPU increase due to
+     * MessageReceiver::completed being called indefinitely
      */
     @Test
     public void test_client_closed_connection() {
         var counter = new AtomicInteger();
-        ObjectsFactory.setInstance(new TestObjectsFactory() {
-            @Override
-            public MessageReceiver createMessageReceiver(
-                    AsynchronousSocketChannel channel, MessageScanner scanner) {
-                return new MessageReceiver(channel, scanner) {
+        ObjectsFactory.setInstance(
+                new TestObjectsFactory() {
                     @Override
-                    public void completed(Integer result,
-                            AsynchronousSocketChannel channel) {
-                        counter.incrementAndGet();
-                        super.completed(result, channel);
+                    public MessageReceiver createMessageReceiver(
+                            AsynchronousSocketChannel channel, MessageScanner scanner) {
+                        return new MessageReceiver(channel, scanner) {
+                            @Override
+                            public void completed(
+                                    Integer result, AsynchronousSocketChannel channel) {
+                                counter.incrementAndGet();
+                                super.completed(result, channel);
+                            }
+                        };
                     }
-                };
-            }
-        });
-        try (var server = new MessageServer(new EchoService(), new FixedLengthMessageScanner(1000))) {
-            server
-                .withNumberOfThreads(1)
-                .withPort(PORT);
+                });
+        try (var server =
+                new MessageServer(new EchoService(), new FixedLengthMessageScanner(1000))) {
+            server.withNumberOfThreads(1).withPort(PORT);
             server.run();
             System.out.println("start sending");
             try (var ch = SocketChannel.open()) {
@@ -167,7 +165,7 @@ public class IntegrationTests {
             Assertions.assertEquals(2, counter.get());
         } catch (Exception e) {
             e.printStackTrace();
-        }        
+        }
     }
 
     /*
@@ -177,48 +175,41 @@ public class IntegrationTests {
         var sender = new Sender();
         var service = new AccumulatorService();
         try (var server = new MessageServer(service, buf -> buf.limit())) {
-            server
-                .withNumberOfThreads(serverThreadPoolSize)
-                .withPort(PORT);
+            server.withNumberOfThreads(serverThreadPoolSize).withPort(PORT);
             server.run();
-            Stream.generate(System::currentTimeMillis).limit(300)
-                .map(l -> l.toString())
-                .parallel()
-                .forEach(sender::send);
+            Stream.generate(System::currentTimeMillis)
+                    .limit(300)
+                    .map(l -> l.toString())
+                    .parallel()
+                    .forEach(sender::send);
             Thread.sleep(5000);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        var sent = sender.sent.stream()
-                .sorted()
-                .toArray();
-        var received = service.received.stream()
-                .sorted()
-                .toArray();
+        var sent = sender.sent.stream().sorted().toArray();
+        var received = service.received.stream().sorted().toArray();
         Assertions.assertArrayEquals(sent, received);
     }
 
     /**
-     * Test that ICE pass the error back to the service:
-     * - if service set withErrorHandler on the message
-     * - if client closed the connection abruptly and ICE failed to deliver
-     * the service response to the client
+     * Test that ICE pass the error back to the service: - if service set withErrorHandler on the
+     * message - if client closed the connection abruptly and ICE failed to deliver the service
+     * response to the client
      */
     @Test
     public void test_withErrorHandler() throws Exception {
         Throwable[] exception = new Throwable[1];
         Consumer<Throwable> errorHandler = exc -> exception[0] = exc;
-        var service = new StreamService("hello") {
-            @Override
-            public CompletableFuture<MessageResponse> process(
-                    MessageRequest message) {
-                return super.process(message).thenApply(response -> response.withErrorHandler(errorHandler));
-            }
-        };
+        var service =
+                new StreamService("hello") {
+                    @Override
+                    public CompletableFuture<MessageResponse> process(MessageRequest message) {
+                        return super.process(message)
+                                .thenApply(response -> response.withErrorHandler(errorHandler));
+                    }
+                };
         try (var server = new MessageServer(service, new VarLengthMessageScanner())) {
-            server
-                .withPort(PORT)
-                .run();
+            server.withPort(PORT).run();
             System.out.println("start sending");
             try (var ch = SocketChannel.open()) {
                 ch.connect(new InetSocketAddress(PORT));
@@ -228,7 +219,7 @@ public class IntegrationTests {
             XThread.sleep(1_000);
             Assertions.assertNotNull(exception[0]);
             Assertions.assertTrue(exception[0] instanceof IOException);
-        }        
+        }
     }
 
     /*
@@ -242,8 +233,7 @@ public class IntegrationTests {
             System.out.println("start sending");
             try (var ch = SocketChannel.open()) {
                 ch.connect(new InetSocketAddress(PORT));
-                if (ch.write(ByteBuffer.wrap(msg.getBytes())) == msg.length())
-                    sent.add(msg);
+                if (ch.write(ByteBuffer.wrap(msg.getBytes())) == msg.length()) sent.add(msg);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -251,4 +241,3 @@ public class IntegrationTests {
         }
     }
 }
-

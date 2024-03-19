@@ -15,24 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE.tests;
 
+import id.ICE.MessageRequest;
+import id.ICE.MessageResponse;
+import id.ICE.MessageService;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import id.ICE.MessageRequest;
-import id.ICE.MessageResponse;
-import id.ICE.MessageService;
-
 /*
  * Service which streams given messages to the client without
  * waiting any reply from the client.
+ * @author lambdaprime intid@protonmail.com
  */
 class StreamService implements MessageService {
     private final List<String> msgs;
@@ -42,9 +38,7 @@ class StreamService implements MessageService {
         this.msgs = new ArrayList<>(msgs);
     }
 
-    /**
-     * Stream data infinite number of times
-     */
+    /** Stream data infinite number of times */
     public StreamService(String msg) {
         msgs = new ArrayList<>();
         msgs.add(msg);
@@ -54,12 +48,9 @@ class StreamService implements MessageService {
     @Override
     public CompletableFuture<MessageResponse> process(MessageRequest request) {
         String msg = msgs.get(0);
-        if (!infinite)
-            msgs.remove(0);
-        var response = new MessageResponse(ByteBuffer.wrap(msg.getBytes()))
-                .withIgnoreNextRequest();
-        if (msgs.isEmpty())
-            response.withCloseOnResponse();
+        if (!infinite) msgs.remove(0);
+        var response = new MessageResponse(ByteBuffer.wrap(msg.getBytes())).withIgnoreNextRequest();
+        if (msgs.isEmpty()) response.withCloseOnResponse();
         return CompletableFuture.completedFuture(response);
     }
 }

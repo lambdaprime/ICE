@@ -15,22 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE.scanners;
 
 /**
- * Scanner for messages where each message is represented
- * as a single line ending with new line (ex. '\n').
- * 
- * The new line is not considered as part of the message.
+ * Scanner for messages where each message is represented as a single line ending with new line (ex.
+ * '\n').
+ *
+ * <p>The new line is not considered as part of the message.
+ *
+ * @author lambdaprime intid@protonmail.com
  */
 public class NewLineMessageScanner extends DelimiterMessageScanner {
 
     public NewLineMessageScanner() {
-        super((byte)'\n');
+        super((byte) '\n');
     }
-
 }

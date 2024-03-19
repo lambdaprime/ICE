@@ -15,29 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - lambdaprime <intid@protonmail.com>
- */
 package id.ICE.scanners;
 
 import java.nio.ByteBuffer;
 
 /**
- * This scanner is useful when all incoming messages have
- * fixed length.
+ * This scanner is useful when all incoming messages have fixed length.
+ *
+ * @author lambdaprime intid@protonmail.com
  */
 public class FixedLengthMessageScanner implements MessageScanner {
 
     private int messageLength;
-    
+
     public FixedLengthMessageScanner(int messageLength) {
         this.messageLength = messageLength;
     }
 
     @Override
     public int scan(ByteBuffer buf) {
-        return buf.position() < messageLength? -1: messageLength + 1;
+        return buf.position() < messageLength ? -1 : messageLength + 1;
     }
-
 }
