@@ -94,7 +94,9 @@ public class MessageReceiver implements CompletionHandler<Integer, AsynchronousS
     }
 
     private boolean processMessage() {
-        var pos = scanner.scan(buf.duplicate().rewind().limit(buf.position()));
+        var newBuf = buf.duplicate();
+        newBuf.rewind().limit(buf.position());
+        var pos = scanner.scan(newBuf);
         if (pos == -1) {
             return false;
         }
