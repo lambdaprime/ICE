@@ -33,15 +33,13 @@
  * another request. But you can easily change this and ask ICE to close it right after response is
  * sent.
  *
- * <p>
- *
  * <p>ICE non-blocking I/O is based on Java Async Channels rather than separate native libraries.
  * This makes ICE really crossplatform and small.
  *
  * <p>ICE has no dependencies on obsolete sun.misc.Unsafe and others so it makes it easy to include
  * into custom Java runtime images.
  *
- * <h1>Samples</h1>
+ * <h2>Samples</h2>
  *
  * <p>Here are the samples for different basic server implementations.
  *
@@ -51,42 +49,41 @@
  *
  * <p>Service implementation:
  *
- * <pre><code>
+ * <pre>{@code
  * public class EchoService implements MessageService {
- * &#64;Override
- * public CompletableFuture&lt;MessageResponse&gt; process(MessageRequest request) {
- * // obtaining and printing data from the request
- * var inputData = request.getMessage().get();
- * System.out.println(new String(inputData.array()));
+ *   @Override
+ *   public CompletableFuture<MessageResponse> process(MessageRequest request) {
+ *     // obtaining and printing data from the request
+ *     var inputData = request.getMessage().get();
+ *     System.out.println(new String(inputData.array()));
  *
- * // generating response with same data and sending back
- * byte[] outputData = new byte[inputData.capacity()];
- * inputData.get(outputData, 0, inputData.capacity());
- * return CompletableFuture.completedFuture(new MessageResponse(ByteBuffer.wrap(outputData)));
+ *     // generating response with same data and sending back
+ *     byte[] outputData = new byte[inputData.capacity()];
+ *     inputData.get(outputData, 0, inputData.capacity());
+ *     return CompletableFuture.completedFuture(new MessageResponse(ByteBuffer.wrap(outputData)));
+ *   }
  * }
- * }
- * </code></pre>
+ * }</pre>
  *
  * <p>Usage:
  *
- * <pre><code>
+ * <pre>{@code
  * try (var server = new MessageServer(new EchoService(), new NewLineMessageScanner())) {
- * server
- * .withNumberOfThreads(1)
- * .withPort(10007);
- * server.run();
+ *   server
+ *     .withNumberOfThreads(1)
+ *     .withPort(10007);
+ *   server.run();
  *
- * // keep running until user press Enter
- * System.in.read();
+ *   // keep running until user press Enter
+ *   System.in.read();
  * } catch (Exception e) {
- * e.printStackTrace();
+ *   e.printStackTrace();
  * }
- * </code></pre>
+ * }</pre>
  *
  * <p>Now you can connect to local port 10007 and type any text which will be repeated to you back
  * once you press Enter.
  *
- * @see <a href="https://github.com/lambdaprime/ICE/releases">Download ICE</a>
  * @see <a href="https://github.com/lambdaprime/ICE">Github</a>
  * @author lambdaprime intid@protonmail.com
  */
